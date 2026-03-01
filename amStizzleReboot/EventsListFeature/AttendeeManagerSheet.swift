@@ -52,6 +52,7 @@ struct AttendeeManagerSheet: View {
           HStack {
             Text(user.firstName)
             Text(user.lastName)
+            Spacer()
             if let event {
               if eventAttendees.contains(where: { $0.userId == user.id && $0.eventId == event.id }) {
                 Image(systemName: "checkmark")
@@ -87,26 +88,16 @@ struct AttendeeManagerSheet: View {
       }
     }
     .navigationBarTitle("Manage Users")
-//    .onAppear {
-//      if let event {
-//        @FetchAll(
-//          EventAttendee
-//            .where { $0.eventId.eq(event.id) }
-//        ) var eventAttendees: [EventAttendee]
-//        
-//        attendees = eventAttendees
-//        print(attendees)
-//      }
-//    }
   }
 
   func saveNewUser() {
     withErrorReporting {
       try database.write { db in
-        try User.insert { User.Draft(id: UUID(), firstName: newUserFirstName, lastName: newUserLastName) }
+        try User.insert { User.Draft(firstName: newUserFirstName, lastName: newUserLastName) }
           .execute(db)
       }
     }
+    logger.info(">>>>> new User inserted")
   }
 }
 
