@@ -12,19 +12,17 @@ struct CreateEventSheet: View {
   @Dependency(\.defaultDatabase) var database
   @Environment(\.dismiss) var dismiss
   
-//  @State var event: Event.Draft
-  
   @State var newEventTitle = ""
   @State var eventBegin = Date()
   @State var eventEnd = Date() + 3600
   
-  @State var newUserFirstName = ""
-  @State var newUserLastName = ""
+//  @State var newUserFirstName = ""
+//  @State var newUserLastName = ""
   
-  @FetchAll
-  var users: [User]
-  
-  @State var attendees: [User] = []
+//  @FetchAll
+//  var users: [User]
+//  
+//  @State var attendees: [User] = []
   
   var body: some View {
     Form {
@@ -34,39 +32,55 @@ struct CreateEventSheet: View {
         DatePicker("Event ends", selection: $eventEnd, displayedComponents: .date)
       }
       
-      Section("Add Attendees") {
-        HStack {
-          TextField("First Name", text: $newUserFirstName)
-          TextField("Last Name", text: $newUserLastName)
-            .onSubmit {
-              withErrorReporting {
-                try database.write { db in
-                  try User.insert { User.Draft(id: UUID(), firstName: newUserFirstName, lastName: newUserLastName) }
-                    .execute(db)
-                }
-              }
-            }
+//      Button {
+      NavigationLink(destination: AttendeeManagerSheet(event: nil)) {
+          Text("Manage Attendees")
         }
-        
-        List {
-          ForEach(users, id: \.id) { user in
-            HStack {
-              Text(user.firstName)
-              Text(user.lastName)
-              if attendees.contains(where: { $0.id == user.id }) {
-                Image(systemName: "checkmark")
-              }
-            }
-            .onTapGesture {
-              if attendees.contains(where: { $0.id == user.id }) {
-                attendees.removeAll(where: { $0.id == user.id })
-              } else {
-                attendees.append(user)
-              }
-            }
-          }
-        }
-      }
+//      Section("Add Attendees") {
+//        HStack {
+//          TextField("First Name", text: $newUserFirstName)
+//          TextField("Last Name", text: $newUserLastName)
+//            .onSubmit {
+//              withErrorReporting {
+//                try database.write { db in
+//                  try User.insert { User.Draft(id: UUID(), firstName: newUserFirstName, lastName: newUserLastName) }
+//                    .execute(db)
+//                }
+//              }
+//            }
+//        }
+//        
+//        List {
+//          ForEach(users, id: \.id) { user in
+//            HStack {
+//              Text(user.firstName)
+//              Text(user.lastName)
+//              if attendees.contains(where: { $0.id == user.id }) {
+//                Image(systemName: "checkmark")
+//              }
+//            }
+//            .onTapGesture {
+//              if attendees.contains(where: { $0.id == user.id }) {
+//                attendees.removeAll(where: { $0.id == user.id })
+//              } else {
+//                attendees.append(user)
+////                withErrorReporting {
+////                  try database.write { db in
+////                    try User.insert { User.Draft(id: UUID(), firstName: newUserFirstName, lastName: newUserLastName) }
+////                      .execute(db)
+////                  }
+////                }
+//                withErrorReporting {
+//                  try database.write { db in
+//                    try EventAttendee.insert { EventAttendee.Draft(eventId: UUID(), userId: user.id) }
+//                      .execute(db)
+//                  }
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
     }
     .navigationTitle("New Event")
     .toolbar {
@@ -94,5 +108,18 @@ struct CreateEventSheet: View {
         .disabled(newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
     }
+  }
+}
+
+#Preview {
+  let event = prepareDependencies {
+    try! $0.bootstrapDatabase()
+    try! $0.defaultDatabase.seed()
+    return try! $0.defaultDatabase.read { db in
+          try Event.fetchOne(db)!
+        }
+  }
+  NavigationStack {
+    CreateEventSheet()
   }
 }

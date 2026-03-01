@@ -137,10 +137,21 @@ extension DatabaseWriter {
   func seed() throws {
     try write { db in
      try db.seed {
-       Event.Draft(title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600)
+       Event(id: UUID(1), title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600)
+//       Event.Draft(title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600)
        Event.Draft(title: "Silvester Party", startDate: Date.now, endDate: Date.now + 7200)
        Event.Draft(title: "Birthday", startDate: Date.now, endDate: Date.now + 1010800)
       }
+      try db.seed {
+        User.Draft(id: UUID(1), firstName: "Arthur", lastName: "Dent")
+        User.Draft(id: UUID(2), firstName: "Bruce", lastName: "Wayne")
+        User.Draft(id: UUID(3), firstName: "Barbara", lastName: "Gordon")
+       }
+      try db.seed {
+        EventAttendee.Draft(eventId: UUID(1), userId: UUID(1))
+//        EventAttendee.Draft(eventId: UUID(2), userId: UUID(2))
+//        EventAttendee.Draft(eventId: UUID(1), userId: UUID(3))
+       }
     }
   }
 }
