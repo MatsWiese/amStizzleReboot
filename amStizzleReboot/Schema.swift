@@ -7,7 +7,13 @@
 
 import Dependencies
 import Foundation
+import os
 import SQLiteData
+
+nonisolated(unsafe) private let logger = Logger(
+  subsystem: Bundle.main.bundleIdentifier ?? "",
+  category: "persistence"
+)
 
 //@Table struct Group: Identifiable {
 //  let id: UUID
@@ -43,7 +49,29 @@ import SQLiteData
 }
 
 func appDatabase() throws -> any DatabaseWriter {
-  let database = try SQLiteData.defaultDatabase()
+  @Dependency(\.context) var context
+  var configuration = Configuration()
+  configuration.prepareDatabase { db in
+//    try db.attachMetadatabase()
+#if DEBUG
+    db.trace(options: .profile) {
+      guard
+        !$0.expandedDescription.hasPrefix("--")
+      else { return }
+      switch context {
+      case .live:
+        logger.debug("\($0.expandedDescription)")
+      case .preview:
+        print("\($0.expandedDescription)")
+      case .test:
+        break
+      }
+    }
+#endif
+  }
+
+  let database = try SQLiteData.defaultDatabase(configuration: configuration)
+  logger.debug("open '\(database.path)'")
   var migrator = DatabaseMigrator()
   
   #if DEBUG
