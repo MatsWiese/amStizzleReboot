@@ -52,8 +52,10 @@ struct AttendeeManagerSheet: View {
           HStack {
             Text(user.firstName)
             Text(user.lastName)
-            if eventAttendees.contains(where: { $0.userId == user.id && $0.eventId == event!.id }) {
-              Image(systemName: "checkmark")
+            if let event {
+              if eventAttendees.contains(where: { $0.userId == user.id && $0.eventId == event.id }) {
+                Image(systemName: "checkmark")
+              }
             }
           }
           .onTapGesture {
