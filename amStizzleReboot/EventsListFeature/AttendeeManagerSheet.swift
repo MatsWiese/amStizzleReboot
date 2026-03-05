@@ -26,6 +26,7 @@ struct AttendeeManagerSheet: View {
   
   var body: some View {
     List {
+      Section("Add new user") {
       HStack {
         TextField("First Name", text: $newUserFirstName)
         TextField("Last Name", text: $newUserLastName)
@@ -39,15 +40,18 @@ struct AttendeeManagerSheet: View {
         }
       }
       .padding()
-      
-      Section {
+    }
         #if Debug
+      Section("Eventtitle and id") {
         if let event {
           Text(event.title)
           Text("eventId: \(event.id)")
             .font(.footnote )
         }
+      }
         #endif
+        
+      Section("Invite users") {
         ForEach(users, id: \.id) { user in
           HStack {
             Text(user.firstName)

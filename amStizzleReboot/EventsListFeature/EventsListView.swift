@@ -9,8 +9,12 @@ import SQLiteData
 import SwiftUI
 
 struct EventsListView: View {
+  @AppStorage("selectedUserID") var selectedUserID: String = ""
+#warning("Fetch only events for the selectedUserID")
   @FetchAll(animation: .default) var events: [Event]
+ 
   @State var isNewEventSheetPresented = false
+  @State var changeUserSheet = false
   
   @Dependency(\.defaultDatabase) var database
 
@@ -63,10 +67,22 @@ struct EventsListView: View {
           Label("Add Event", systemImage: "plus")
         }
       }
+      ToolbarItem(placement: .topBarLeading) {
+        Button {
+          changeUserSheet = true
+        } label: {
+          Label("ChangeUser", systemImage: "person.fill.and.arrow.left.and.arrow.right.outward")
+        }
+      }
     }
     .sheet(isPresented: $isNewEventSheetPresented) {
       NavigationStack {
         CreateEventSheet()
+      }
+    }
+    .sheet(isPresented: $changeUserSheet) {
+      NavigationStack {
+        DebugChangeUserView()
       }
     }
   }

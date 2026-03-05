@@ -42,6 +42,13 @@ nonisolated(unsafe) private let logger = Logger(
 //  var modificationDate: Date
 }
 
+//enum AttendanceStatus: String {
+//  case invited
+//  case attending
+//  case notAttending
+//  case unsure
+//}
+
 @Table struct EventAttendee: Identifiable {
     let id: UUID
     var eventId: Event.ID
