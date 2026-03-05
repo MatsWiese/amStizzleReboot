@@ -9,99 +9,186 @@ import os
 import SwiftUI
 import SQLiteData
 
+@Observable class AttendeeManagerModel {
+  @ObservationIgnored @Dependency(\.defaultDatabase) var database
+  let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerModel")
+  
+  let event: Event
+  var isNewUserAlertPresented = false
+  var newUserFirstName = ""
+  var newUserLastName = ""
+  var sortForAttendance = false {
+    didSet {
+      Task { await reloadUsersData() }
+    }
+  }
+  @ObservationIgnored @FetchAll(User.none) var users
+  @ObservationIgnored @FetchAll(EventAttendee.none) var eventAttendees
+  
+  init(event: Event) {
+    self.event = event
+  }
+  
+  func addUserButtonTapped() {
+    newUserFirstName = ""
+    newUserLastName = ""
+    isNewUserAlertPresented = true
+  }
+  
+  func deleteUsers(at offsets: IndexSet) {
+    withErrorReporting {
+      try database.write { db in
+        try User.find(offsets.map { users[$0].id })
+          .delete()
+          .execute(db)
+      }
+    }
+  }
+  
+  func addOrRemoveAsAttendee(for user: User) {
+    if eventAttendees.contains(where: { $0.userId == user.id }) {
+      logger.info("%%% user is already registered for the event")
+      withErrorReporting {
+        try database.write { db in
+          try EventAttendee
+            .where { $0.userId.eq(user.id)/* && $0.eventId.eq(event.id)*/ }
+            .delete()
+            .execute(db)
+        }
+        logger.info("%%% eventAttendee deleted")
+      }
+    } else {
+      withErrorReporting {
+        try database.write { db in
+          try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: user.id) }
+            .execute(db)
+        }
+      }
+      logger.info(">>>>> eventAttendee inserted")
+    }
+  }
+  
+  func saveNewUserButtonTapped() {
+    withErrorReporting {
+      try database.write { db in
+        try User.insert { User.Draft(firstName: newUserFirstName, lastName: newUserLastName)
+        }
+        .execute(db)
+      }
+    }
+    logger.info(">>>>> new User inserted")
+  }
+  
+  func toggleSortingButtonTapped() {
+    sortForAttendance.toggle()
+  }
+  
+  func reloadUsersData() async {
+    await withErrorReporting {
+      _ = try await $users.load(
+        User
+          .order {
+            if sortForAttendance {
+              $0.firstName
+            } else {
+              $0.lastName
+            }
+          },
+        animation: .default
+      )
+    }
+  }
+  
+  func reloadAttendeeData() async {
+    await withErrorReporting {
+      _ = try await $eventAttendees.load(
+        EventAttendee
+          .where { $0.eventId.eq(event.id) }
+        , animation: .default
+      )
+    }
+  }
+  
+  func task() async {
+    await reloadUsersData()
+    await reloadAttendeeData()
+  }
+}
+
 struct AttendeeManagerSheet: View {
   @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerSheet")
-//
-  @FetchAll(animation: .default)
-  var users: [User]
   
-  @State var newUserFirstName = ""
-  @State var newUserLastName = ""
-  
-  let event: Event?
+  @State var model: AttendeeManagerModel
+  init(event: Event) {
+    _model = State(wrappedValue: AttendeeManagerModel(event: event))
+  }
   
   @FetchAll
   var eventAttendees: [EventAttendee]
   
   var body: some View {
     List {
-      Section("Add new user") {
-      HStack {
-        TextField("First Name", text: $newUserFirstName)
-        TextField("Last Name", text: $newUserLastName)
-          .onSubmit {
-            saveNewUser()
+#if DEBUG
+      Section("passed Eventtitle and id") {
+        Text(model.event.title)
+        Text("eventId: \(model.event.id)")
+          .font(.footnote )
+      }
+#endif
+      Section {
+        if !model.$users.isLoading, model.users.isEmpty {
+          ContentUnavailableView {
+            Label("No users", systemImage: "person.3.fill")
+          } description: {
+            Button("Add user") { model.addUserButtonTapped() }
           }
-        Button {
-          saveNewUser()
-        } label: {
-          Image(systemName: "plus.circle")
         }
-      }
-      .padding()
-    }
-        #if Debug
-      Section("Eventtitle and id") {
-        if let event {
-          Text(event.title)
-          Text("eventId: \(event.id)")
-            .font(.footnote )
-        }
-      }
-        #endif
-        
-      Section("Invite users") {
-        ForEach(users, id: \.id) { user in
+        ForEach(model.users, id: \.id) { user in
           HStack {
             Text(user.firstName)
             Text(user.lastName)
             Spacer()
-            if let event {
-              if eventAttendees.contains(where: { $0.userId == user.id && $0.eventId == event.id }) {
-                Image(systemName: "checkmark")
-              }
+            Button {
+              model.addOrRemoveAsAttendee(for: user)
+            } label: {
+              Image(systemName: model.eventAttendees.contains(where: { $0.userId == user.id }) ? "checkmark" : "plus")
             }
           }
-          .onTapGesture {
-            if let event {
-              if eventAttendees.contains(where: { $0.userId == user.id }) {
-                
-                logger.info("%%% user is already registered for the event")
-                withErrorReporting {
-                  try database.write { db in
-                    try EventAttendee
-                      .where { $0.userId.eq(user.id)/* && $0.eventId.eq(event.id)*/ }
-                      .delete()
-                      .execute(db)
-                  }
-                  logger.info("%%% eventAttendee deleted")
-                }
-              } else {
-                withErrorReporting {
-                  try database.write { db in
-                    try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: user.id) }
-                      .execute(db)
-                  }
-                }
-                logger.info(">>>>> eventAttendee inserted")
-              }
-            }
+        }
+        .onDelete { offsets in model.deleteUsers(at: offsets) }
+      } header: {
+        HStack {
+          Text("Invite users")
+          Spacer()
+          Button {
+#warning("sort for Attendance not yet working")
+            model.toggleSortingButtonTapped()
+          } label: {
+            Image(systemName: model.sortForAttendance ? "person.checkmark.and.xmark" : "arrow.down")
           }
         }
       }
     }
-    .navigationBarTitle("Manage Users")
-  }
-
-  func saveNewUser() {
-    withErrorReporting {
-      try database.write { db in
-        try User.insert { User.Draft(firstName: newUserFirstName, lastName: newUserLastName) }
-          .execute(db)
+      .navigationBarTitle("Manage Users")
+      .toolbar {
+        ToolbarItem {
+          Button {
+            model.isNewUserAlertPresented = true
+          } label: {
+            Image(systemName: "plus")
+          }
+          .alert("New User", isPresented: $model.isNewUserAlertPresented) {
+            TextField("First name", text: $model.newUserFirstName)
+            TextField("Last name", text: $model.newUserLastName)
+            Button("Save") { model.saveNewUserButtonTapped() }
+            Button("Cancel", role: .cancel) { }
+          }
+        }
       }
-    }
-    logger.info(">>>>> new User inserted")
+      .task {
+        await model.task()
+      }
   }
 }
 
@@ -110,8 +197,8 @@ struct AttendeeManagerSheet: View {
     try! $0.bootstrapDatabase()
     try! $0.defaultDatabase.seed()
     return try! $0.defaultDatabase.read { db in
-          try Event.fetchOne(db)!
-        }
+      try Event.fetchOne(db)!
+    }
   }
   NavigationStack {
     AttendeeManagerSheet(event: event)

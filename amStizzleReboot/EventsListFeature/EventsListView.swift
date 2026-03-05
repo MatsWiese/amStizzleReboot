@@ -9,49 +9,64 @@ import SQLiteData
 import SwiftUI
 
 struct EventsListView: View {
+  @Selection struct Row {
+    let event: Event
+    let attendeeCount: Int
+  }
   @AppStorage("selectedUserID") var selectedUserID: String = ""
+  
 #warning("Fetch only events for the selectedUserID")
-  @FetchAll(animation: .default) var events: [Event]
+  @FetchAll(
+    Event
+      .group(by: \.id)
+      .leftJoin(EventAttendee.all) { $0.id.eq($1.eventId) }
+      .select { Row.Columns(event: $0, attendeeCount: $1.count()) },
+    animation: .default
+  ) var rows/*: [Row]*/
  
   @State var isNewEventSheetPresented = false
+  
   @State var changeUserSheet = false
   
   @Dependency(\.defaultDatabase) var database
 
   var body: some View {
     List {
-      ForEach(events) { event in
-        NavigationLink(destination: EventDetailView(event: event), label: {
+      ForEach(rows, id: \.event.id) { row in
+        NavigationLink {
+          EventDetailView(event: row.event)
+        } label: {
           HStack {
             VStack(alignment: .leading) {
-              Text(event.title)
+              Text(row.event.title)
                 .font(.headline)
               HStack {
-                Text(event.startDate.formatted(date: .abbreviated, time: .omitted))
+                Text(row.event.startDate.formatted(date: .abbreviated, time: .omitted))
                 
-                let duration = DateInterval(start: event.startDate, end: event.endDate)
+                let duration = DateInterval(start: row.event.startDate, end: row.event.endDate)
                 Text(duration)
               }
             }
             Spacer()
             HStack {
-//              Text(event.attendees.count)
-//              if event.attendees == 2 {
-//                Image(systemName: "person.2")
-//              } else if event.attendees > 2 {
-//                Image(systemName: "person.3")
-//              } else {
+              if row.attendeeCount == 1 {
                 Image(systemName: "person")
-//              }
+              } else if row.attendeeCount == 2 {
+                Image(systemName: "person.2")
+              } else if row.attendeeCount == 3 {
+                Image(systemName: "person.3")
+              } else if row.attendeeCount > 3 {
+                Text("\(row.attendeeCount)")
+                Image(systemName: "person.3")
+              }
             }
           }
         }
-      )
       }
       .onDelete { offsets in
         withErrorReporting {
           try database.write { db in
-            try Event.find(offsets.map { events[$0].id })
+            try Event.find(offsets.map { rows[$0].event.id })
               .delete()
               .execute(db)
           }
@@ -62,6 +77,7 @@ struct EventsListView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
+//          newEventTitle = ""
           isNewEventSheetPresented = true
         } label: {
           Label("Add Event", systemImage: "plus")
