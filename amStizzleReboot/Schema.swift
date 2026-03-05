@@ -5,6 +5,7 @@
 //  Created by Fred Erik on 16.12.25.
 //
 
+import StructuredQueries
 import Dependencies
 import Foundation
 import os
@@ -53,6 +54,7 @@ nonisolated(unsafe) private let logger = Logger(
     let id: UUID
     var eventId: Event.ID
     var userId: User.ID
+//    var status: AttendanceStatus
 }
 
 func appDatabase() throws -> any DatabaseWriter {
@@ -124,7 +126,8 @@ func appDatabase() throws -> any DatabaseWriter {
       CREATE TABLE "eventAttendees" (
         "id" TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
         "eventId" TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
-        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        -- "status" TEXT NOT NULL DEFAULT "invited"
       )
       """
     )
