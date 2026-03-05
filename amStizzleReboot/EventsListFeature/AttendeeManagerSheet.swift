@@ -116,7 +116,6 @@ import SQLiteData
 }
 
 struct AttendeeManagerSheet: View {
-  @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerSheet")
   
   @State var model: AttendeeManagerModel

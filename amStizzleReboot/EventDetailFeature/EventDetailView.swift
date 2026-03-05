@@ -9,106 +9,19 @@ import SwiftUI
 import SQLiteData
 //import Dependencies
 
-//@Observable class EventDetailModel {
-//  let event: Event
-//  
-//}
-
-struct EventDetailView: View {
-  @Dependency(\.defaultDatabase) var database
-  @AppStorage("selectedUserID") var currentUserIDString: String = ""
-  
+@Observable class EventDetailModel {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventDetailView")
+  @ObservationIgnored @Dependency(\.defaultDatabase) var database
+  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
   
   let event: Event
   
-  //  @FetchAll(
-  //  EventAttendee.where { $0.eventId.eq(event.id) })
-  //  var attendees: [EventAttendee]
+  @ObservationIgnored @FetchAll(EventAttendee.none)
+  var eventAttendees
   
-  var body: some View {
-    Form {
-      HStack {
-        Text("From: ")
-        Spacer()
-        Text(event.startDate.formatted(date: .abbreviated, time: .shortened))
-      }
-      HStack {
-        Text("To: ")
-        Spacer()
-        Text(event.endDate.formatted(date: .abbreviated, time: .shortened))
-      }
-      HStack {
-        Text("Attendees: ")
-        Spacer()
-        NavigationLink(destination: AttendeeManagerSheet(event: event)) {
-#warning("works only when coming from EventsList")
-          Text("\(attendeeCount(for: event))")
-        }
-      }
-      
-        ForEach(attendees(for: event)) { attendee in
-          Text(attendee.userId.uuidString)
-            .font(.footnote)
-      }
-      
-      
-      HStack {
-        Button {
-          guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
-          withErrorReporting {
-            try database.write { db in
-              try EventAttendee
-                .where { $0.userId.eq(currentUserId) }
-                .delete()
-                .execute(db)
-            }
-            logger.info("%%% Attendee for event deleted")
-          }
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.red)
-            Text("Nope")
-          }
-        }
-        
-        Button {
-          
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.yellow)
-            Text("maybe")
-          }
-          .frame(width: 70)
-        }
-        
-        Button {
-          guard let userId = UUID(uuidString: currentUserIDString) else { return }
-          withErrorReporting {
-            print(userId.uuidString)
-            try database.write { db in
-              try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: userId) }
-                .execute(db)
-            }
-          }
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.green)
-            Text("am Stizzle!")
-          }
-        }
-      }
-      .frame(height: 50)
-        .navigationTitle(event.title)
-    }
-    .onAppear {
-      print("%%%% selectedUserID: \(currentUserIDString)")
-    }
+  init(event: Event) {
+    self.event = event
   }
-  
   
   func attendees(for event: Event) -> [EventAttendee] {
     (try? database.read { db in
@@ -124,6 +37,121 @@ struct EventDetailView: View {
         .fetchCount(db)
     })
     ?? 0
+  }
+  
+  func acceptEventInvitation() {
+    guard let userId = UUID(uuidString: currentUserIDString) else { return }
+    withErrorReporting {
+      print(userId.uuidString)
+      try database.write { db in
+        try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: userId) }
+          .execute(db)
+      }
+    }
+  }
+  
+  func declineEventInvitation() {
+    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
+    withErrorReporting {
+      try database.write { db in
+        try EventAttendee
+          .where { $0.userId.eq(currentUserId) }
+          .delete()
+          .execute(db)
+      }
+      logger.info("%%% Attendee for event deleted")
+    }
+  }
+  
+  func reloadAttendeeData() async {
+    await withErrorReporting {
+      _ = try await $eventAttendees.load(
+        EventAttendee
+          .where { $0.eventId.eq(event.id) }
+        , animation: .default
+      )
+    }
+  }
+    
+  func loadTask() async {
+    //    await reloadUsersData()
+    await reloadAttendeeData()
+  }
+}
+
+struct EventDetailView: View {
+  @State var model: EventDetailModel
+  init(event: Event) {
+    _model = State(wrappedValue: EventDetailModel(event: event))
+  }
+  
+  var body: some View {
+    Form {
+      HStack {
+        Text("From: ")
+        Spacer()
+        Text(model.event.startDate.formatted(date: .abbreviated, time: .shortened))
+      }
+      HStack {
+        Text("To: ")
+        Spacer()
+        Text(model.event.endDate.formatted(date: .abbreviated, time: .shortened))
+      }
+      HStack {
+        Text("Attendees: ")
+        Spacer()
+        NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
+#warning("works only when coming from EventsList")
+          Text("\(model.attendeeCount(for: model.event))")
+        }
+      }
+      
+      ForEach(model.attendees(for: model.event)) { attendee in
+        Text(attendee.userId.uuidString)
+          .font(.footnote)
+      }
+      
+      HStack {
+        Button {
+          model.declineEventInvitation()
+        } label: {
+          ZStack {
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.red)
+            Text("Nope")
+          }
+        }
+        
+        Button {
+          // implement maybe-logic
+        } label: {
+          ZStack {
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.yellow)
+            Text("maybe")
+          }
+          .frame(width: 70)
+        }
+        
+        Button {
+          model.acceptEventInvitation()
+        } label: {
+          ZStack {
+            RoundedRectangle(cornerRadius: 8)
+              .fill(Color.green)
+            Text("am Stizzle!")
+          }
+        }
+      }
+      .frame(height: 50)
+      .navigationTitle(model.event.title)
+    }
+    .task {
+      await model.loadTask()
+    }
+    .onAppear {
+      print("%%%% selectedUserID: \(model.currentUserIDString)")
+    }
   }
 }
 

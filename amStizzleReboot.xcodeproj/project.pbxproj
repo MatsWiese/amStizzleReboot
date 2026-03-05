@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B6F1F13B2EF1F3250028DB5E /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = B6F1F13A2EF1F3250028DB5E /* SQLiteData */; };
+		B6EA0EC02F5A22110086879E /* SQLiteData in Frameworks */ = {isa = PBXBuildFile; productRef = B6EA0EBF2F5A22110086879E /* SQLiteData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,7 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B6F1F13B2EF1F3250028DB5E /* SQLiteData in Frameworks */,
+				B6EA0EC02F5A22110086879E /* SQLiteData in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,7 +130,7 @@
 			);
 			name = amStizzleReboot;
 			packageProductDependencies = (
-				B6F1F13A2EF1F3250028DB5E /* SQLiteData */,
+				B6EA0EBF2F5A22110086879E /* SQLiteData */,
 			);
 			productName = amStizzleReboot;
 			productReference = B6F1F10D2EF1EDF30028DB5E /* amStizzleReboot.app */;
@@ -215,7 +215,7 @@
 			mainGroup = B6F1F1042EF1EDF30028DB5E;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B6F1F1392EF1F3250028DB5E /* XCRemoteSwiftPackageReference "sqlite-data" */,
+				B6EA0EBE2F5A22110086879E /* XCRemoteSwiftPackageReference "sqlite-data" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B6F1F10E2EF1EDF30028DB5E /* Products */;
@@ -351,6 +351,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
@@ -406,6 +407,7 @@
 				MTL_FAST_MATH = YES;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
@@ -651,20 +653,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		B6F1F1392EF1F3250028DB5E /* XCRemoteSwiftPackageReference "sqlite-data" */ = {
+		B6EA0EBE2F5A22110086879E /* XCRemoteSwiftPackageReference "sqlite-data" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/pointfreeco/sqlite-data.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.4.0;
+				minimumVersion = 1.6.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		B6F1F13A2EF1F3250028DB5E /* SQLiteData */ = {
+		B6EA0EBF2F5A22110086879E /* SQLiteData */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B6F1F1392EF1F3250028DB5E /* XCRemoteSwiftPackageReference "sqlite-data" */;
+			package = B6EA0EBE2F5A22110086879E /* XCRemoteSwiftPackageReference "sqlite-data" */;
 			productName = SQLiteData;
 		};
 /* End XCSwiftPackageProductDependency section */
