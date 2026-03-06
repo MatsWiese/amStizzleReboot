@@ -31,12 +31,28 @@ import SQLiteData
     ?? []
   }
   
-  func attendeeCount(for event: Event) -> Int {
+  func invitationCount(for event: Event) -> Int {
     (try? database.read { db in
-      try EventAttendee.where { $0.eventId.eq(event.id) }
+      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.invited) }
         .fetchCount(db)
     })
     ?? 0
+  }
+  
+  func attendeeCount(for event: Event) -> Int {
+    (try? database.read { db in
+      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.attending) }
+        .fetchCount(db)
+    })
+    ?? 0
+  }
+  
+    func declinedCount(for event: Event) -> Int {
+      (try? database.read { db in
+        try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.notAttending) }
+          .fetchCount(db)
+      })
+      ?? 0
   }
   
   func acceptEventInvitation() {
@@ -44,7 +60,7 @@ import SQLiteData
     withErrorReporting {
       print(userId.uuidString)
       try database.write { db in
-        try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: userId) }
+        try EventAttendee.upsert { EventAttendee.Draft(eventId: event.id, userId: userId, status: .attending) }
           .execute(db)
       }
     }
@@ -68,6 +84,17 @@ import SQLiteData
       _ = try await $eventAttendees.load(
         EventAttendee
           .where { $0.eventId.eq(event.id) }
+        , animation: .default
+      )
+    }
+  }
+  
+  func reloadCurrentUserData() async {
+    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
+    await withErrorReporting {
+      _ = try await $currentUser.load(
+        EventAttendee
+          .where { $0.eventId.eq(event.id) && $0.userId.eq(currentUserId) }
         , animation: .default
       )
     }
@@ -97,49 +124,71 @@ struct EventDetailView: View {
         Spacer()
         Text(model.event.endDate.formatted(date: .abbreviated, time: .shortened))
       }
-      HStack {
-        Text("Attendees: ")
-        Spacer()
+//      HStack {
+////        Text("Attendees: ")
+////        Spacer()
         NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
 #warning("works only when coming from EventsList")
-          Text("\(model.attendeeCount(for: model.event))")
+          HStack {
+            Text("Attendees: ")
+            Text("\(model.attendeeCount(for: model.event))")
+            Spacer()
+            Text("Declined: ")
+            Text("\(model.declinedCount(for: model.event))")
+            Spacer()
+            Text("Invited: ")
+            Text("\(model.invitationCount(for: model.event))")
+          }
         }
-      }
+//      }
       
       ForEach(model.attendees(for: model.event)) { attendee in
-        Text(attendee.userId.uuidString)
-          .font(.footnote)
+        HStack {
+          Text(attendee.userId.uuidString)
+          Spacer()
+          Text(attendee.status.displayName)
+        }
+        .font(.caption2)
       }
       
+      
+      
       HStack {
-        Button {
-          model.declineEventInvitation()
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.red)
-            Text("Nope")
+        
+        if model.currentUser?.status ?? .invited != .notAttending {
+          Button {
+            model.declineEventInvitation()
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.red)
+              Text("Nope")
+            }
           }
         }
         
-        Button {
-          // implement maybe-logic
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.yellow)
-            Text("maybe")
+        if model.currentUser?.status ?? .invited != .unsure {
+          Button {
+            // implement maybe-logic
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.yellow)
+              Text("maybe")
+            }
+            .frame(width: 70)
           }
-          .frame(width: 70)
         }
         
-        Button {
-          model.acceptEventInvitation()
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(Color.green)
-            Text("am Stizzle!")
+        if model.currentUser?.status ?? .invited != .attending {
+          Button {
+            model.acceptEventInvitation()
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.green)
+              Text("am Stizzle!")
+            }
           }
         }
       }

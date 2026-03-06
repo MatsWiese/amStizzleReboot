@@ -43,18 +43,42 @@ nonisolated(unsafe) private let logger = Logger(
 //  var modificationDate: Date
 }
 
-//enum AttendanceStatus: String {
+//enum AttendanceStatus: QueryBindable {
 //  case invited
 //  case attending
 //  case notAttending
 //  case unsure
 //}
 
+struct AttandanceStatus: RawRepresentable, QueryBindable {
+  let rawValue: Int
+  static let invited = AttandanceStatus(rawValue: 0)
+  static let attending = AttandanceStatus(rawValue: 1)
+  static let notAttending = AttandanceStatus(rawValue: 2)
+  static let unsure = AttandanceStatus(rawValue: 3)
+}
+ extension AttandanceStatus {
+    var displayName: String {
+        switch rawValue {
+        case Self.invited.rawValue:
+            return "Invited"
+        case Self.attending.rawValue:
+            return "Attending"
+        case Self.notAttending.rawValue:
+            return "Declined"
+        case Self.unsure.rawValue:
+            return "Unsure"
+        default:
+            return "Unknown"
+        }
+    }
+}
+
 @Table struct EventAttendee: Identifiable {
     let id: UUID
     var eventId: Event.ID
     var userId: User.ID
-//    var status: AttendanceStatus
+    var status: AttandanceStatus
 }
 
 func appDatabase() throws -> any DatabaseWriter {
@@ -127,7 +151,7 @@ func appDatabase() throws -> any DatabaseWriter {
         "id" TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
         "eventId" TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
         "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        -- "status" TEXT NOT NULL DEFAULT "invited"
+        "status" TEXT NOT NULL DEFAULT "invited"
       )
       """
     )
@@ -158,9 +182,9 @@ extension DatabaseWriter {
         User.Draft(id: UUID(3), firstName: "Barbara", lastName: "Gordon")
        }
       try db.seed {
-        EventAttendee.Draft(eventId: UUID(1), userId: UUID(1))
-//        EventAttendee.Draft(eventId: UUID(2), userId: UUID(2))
-//        EventAttendee.Draft(eventId: UUID(1), userId: UUID(3))
+        EventAttendee.Draft(eventId: UUID(1), userId: UUID(1), status: .invited)
+        EventAttendee.Draft(eventId: UUID(1), userId: UUID(2), status: .attending)
+        EventAttendee.Draft(eventId: UUID(1), userId: UUID(3), status: .notAttending)
        }
     }
   }

@@ -60,7 +60,7 @@ import SQLiteData
     } else {
       withErrorReporting {
         try database.write { db in
-          try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: user.id) }
+          try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: user.id, status: .invited) }
             .execute(db)
         }
       }
@@ -173,7 +173,7 @@ struct AttendeeManagerSheet: View {
       .toolbar {
         ToolbarItem {
           Button {
-            model.isNewUserAlertPresented = true
+            model.addUserButtonTapped()
           } label: {
             Image(systemName: "plus")
           }

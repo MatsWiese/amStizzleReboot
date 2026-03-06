@@ -23,8 +23,14 @@ struct DebugChangeUserView: View {
           dismiss()
         }) {
           HStack {
-            Text(user.firstName)
-            Text(user.lastName)
+            VStack(alignment: .leading) {
+              HStack {
+                Text(user.firstName)
+                Text(user.lastName)
+              }
+              Text("\(user.id.uuidString)")
+                .font(.callout)
+            }
             if user.id.uuidString == selectedUserID {
               Image(systemName: "checkmark")
             }
