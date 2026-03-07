@@ -71,14 +71,11 @@ import SQLiteData
   func acceptEventInvitation() {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
-      print(userId.uuidString)
+      print("🐸🐸🐸 ", "accepting", userId.uuidString)
       try database.write { db in
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
-          .update {
-            $0.status = .notAttending
-          }
-//          .update { EventAttendee(id: $0.id, eventId: event.id, userId: userId, status: .attending) }
+          .update { $0.status = #bind(.attending) }
           .execute(db)
       }
     }
@@ -87,31 +84,15 @@ import SQLiteData
   func declineEventInvitation() {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
-      print(userId.uuidString)
+      print("🐸🐸🐸", "Declining", userId.uuidString)
       try database.write { db in
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
-          .update {
-            $0.status = .QueryValue.notAttending
-          }
-//          .upsert { EventAttendee.Draft(eventId: event.id, userId: userId, status: .notAttending) }
+          .update { $0.status = #bind(.notAttending) }
           .execute(db)
       }
     }
   }
-  
-//  func declineEventInvitation() {
-//    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
-//    withErrorReporting {
-//      try database.write { db in
-//        try EventAttendee
-//          .where { $0.userId.eq(currentUserId) }
-//          .delete()
-//          .execute(db)
-//      }
-//      logger.info("%%% Attendee for event deleted")
-//    }
-//  }
   
   func reloadAttendeeData() async {
     await withErrorReporting {
@@ -187,7 +168,7 @@ struct EventDetailView: View {
       
       
       
-      HStack {
+//      HStack {
         
         if model.currentUser?.status ?? .invited != .notAttending {
           Button {
@@ -225,9 +206,9 @@ struct EventDetailView: View {
             }
           }
         }
-      }
-      .frame(height: 50)
-      .navigationTitle(model.event.title)
+//      }
+//      .frame(height: 50)
+//      .navigationTitle(model.event.title)
     }
     .task {
       await model.loadTask()
