@@ -19,9 +19,22 @@ import SQLiteData
   @ObservationIgnored @FetchAll(EventAttendee.none)
   var eventAttendees
   
+  @ObservationIgnored @FetchOne(EventAttendee.none)
+  var currentUser
+//    .where($0.userId.eq(UUID(uuidString: currentUserIDString))
+  
   init(event: Event) {
     self.event = event
   }
+  
+//  func currentUser(for event: Event) -> EventAttendee {
+//    guard let userId = UUID(uuidString: currentUserIDString) else { return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited) }
+//    (try? database.read { db in
+//      try EventAttendee.where { $0.eventId.eq(event.id) && $0.userId.eq(UUID(uuidString: currentUserIDString)!) }
+//        .fetchOne(db)
+//    })
+//    ?? return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited)
+//  }
   
   func attendees(for event: Event) -> [EventAttendee] {
     (try? database.read { db in
@@ -60,24 +73,45 @@ import SQLiteData
     withErrorReporting {
       print(userId.uuidString)
       try database.write { db in
-        try EventAttendee.upsert { EventAttendee.Draft(eventId: event.id, userId: userId, status: .attending) }
+        try EventAttendee
+          .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
+          .update {
+            $0.status = .notAttending
+          }
+//          .update { EventAttendee(id: $0.id, eventId: event.id, userId: userId, status: .attending) }
           .execute(db)
       }
     }
   }
   
   func declineEventInvitation() {
-    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
+    guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
+      print(userId.uuidString)
       try database.write { db in
         try EventAttendee
-          .where { $0.userId.eq(currentUserId) }
-          .delete()
+          .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
+          .update {
+            $0.status = .QueryValue.notAttending
+          }
+//          .upsert { EventAttendee.Draft(eventId: event.id, userId: userId, status: .notAttending) }
           .execute(db)
       }
-      logger.info("%%% Attendee for event deleted")
     }
   }
+  
+//  func declineEventInvitation() {
+//    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
+//    withErrorReporting {
+//      try database.write { db in
+//        try EventAttendee
+//          .where { $0.userId.eq(currentUserId) }
+//          .delete()
+//          .execute(db)
+//      }
+//      logger.info("%%% Attendee for event deleted")
+//    }
+//  }
   
   func reloadAttendeeData() async {
     await withErrorReporting {
