@@ -71,7 +71,7 @@ import SQLiteData
   func acceptEventInvitation() async {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
-      print(userId.uuidString)
+      print("🐸🐸🐸 ", "accepting", userId.uuidString)
       try database.write { db in
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
@@ -87,7 +87,7 @@ import SQLiteData
   func declineEventInvitation() async {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
-      print(userId.uuidString)
+      print("🐸🐸🐸", "Declining", userId.uuidString)
       try database.write { db in
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
