@@ -21,20 +21,20 @@ import SQLiteData
   
   @ObservationIgnored @FetchOne(EventAttendee.none)
   var currentUser
-//    .where($0.userId.eq(UUID(uuidString: currentUserIDString))
+  //    .where($0.userId.eq(UUID(uuidString: currentUserIDString))
   
   init(event: Event) {
     self.event = event
   }
   
-//  func currentUser(for event: Event) -> EventAttendee {
-//    guard let userId = UUID(uuidString: currentUserIDString) else { return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited) }
-//    (try? database.read { db in
-//      try EventAttendee.where { $0.eventId.eq(event.id) && $0.userId.eq(UUID(uuidString: currentUserIDString)!) }
-//        .fetchOne(db)
-//    })
-//    ?? return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited)
-//  }
+  //  func currentUser(for event: Event) -> EventAttendee {
+  //    guard let userId = UUID(uuidString: currentUserIDString) else { return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited) }
+  //    (try? database.read { db in
+  //      try EventAttendee.where { $0.eventId.eq(event.id) && $0.userId.eq(UUID(uuidString: currentUserIDString)!) }
+  //        .fetchOne(db)
+  //    })
+  //    ?? return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited)
+  //  }
   
   func attendees(for event: Event) -> [EventAttendee] {
     (try? database.read { db in
@@ -60,15 +60,15 @@ import SQLiteData
     ?? 0
   }
   
-    func declinedCount(for event: Event) -> Int {
-      (try? database.read { db in
-        try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.notAttending) }
-          .fetchCount(db)
-      })
-      ?? 0
+  func declinedCount(for event: Event) -> Int {
+    (try? database.read { db in
+      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.notAttending) }
+        .fetchCount(db)
+    })
+    ?? 0
   }
   
-  func acceptEventInvitation() {
+  func acceptEventInvitation() async {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
       print(userId.uuidString)
@@ -76,15 +76,15 @@ import SQLiteData
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
           .update {
-            $0.status = .notAttending
+            $0.status = #bind(.attending)
           }
-//          .update { EventAttendee(id: $0.id, eventId: event.id, userId: userId, status: .attending) }
           .execute(db)
       }
     }
+    await reloadCurrentUserData()
   }
   
-  func declineEventInvitation() {
+  func declineEventInvitation() async {
     guard let userId = UUID(uuidString: currentUserIDString) else { return }
     withErrorReporting {
       print(userId.uuidString)
@@ -92,26 +92,13 @@ import SQLiteData
         try EventAttendee
           .where { $0.userId.eq(userId) && $0.eventId.eq(event.id) }
           .update {
-            $0.status = .QueryValue.notAttending
+            $0.status = #bind(.notAttending)
           }
-//          .upsert { EventAttendee.Draft(eventId: event.id, userId: userId, status: .notAttending) }
           .execute(db)
       }
     }
+    await reloadCurrentUserData()
   }
-  
-//  func declineEventInvitation() {
-//    guard let currentUserId = UUID(uuidString: currentUserIDString) else { return }
-//    withErrorReporting {
-//      try database.write { db in
-//        try EventAttendee
-//          .where { $0.userId.eq(currentUserId) }
-//          .delete()
-//          .execute(db)
-//      }
-//      logger.info("%%% Attendee for event deleted")
-//    }
-//  }
   
   func reloadAttendeeData() async {
     await withErrorReporting {
@@ -133,10 +120,10 @@ import SQLiteData
       )
     }
   }
-    
+  
   func loadTask() async {
-    //    await reloadUsersData()
     await reloadAttendeeData()
+    await reloadCurrentUserData()
   }
 }
 
@@ -147,20 +134,25 @@ struct EventDetailView: View {
   }
   
   var body: some View {
-    Form {
+    VStack {
+//      Form {
+        HStack {
+          Text("From: ")
+          Spacer()
+          Text(model.event.startDate.formatted(date: .abbreviated, time: .shortened))
+        }
+        HStack {
+          Text("To: ")
+          Spacer()
+          Text(model.event.endDate.formatted(date: .abbreviated, time: .shortened))
+        }
       HStack {
-        Text("From: ")
+      Text("Creator: ")
         Spacer()
-        Text(model.event.startDate.formatted(date: .abbreviated, time: .shortened))
+        Text(model.currentUser?.userId.uuidString ?? "Unknown")
+          .font(.caption2)
       }
-      HStack {
-        Text("To: ")
-        Spacer()
-        Text(model.event.endDate.formatted(date: .abbreviated, time: .shortened))
-      }
-//      HStack {
-////        Text("Attendees: ")
-////        Spacer()
+        
         NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
 #warning("works only when coming from EventsList")
           HStack {
@@ -174,24 +166,24 @@ struct EventDetailView: View {
             Text("\(model.invitationCount(for: model.event))")
           }
         }
-//      }
-      
-      ForEach(model.attendees(for: model.event)) { attendee in
-        HStack {
-          Text(attendee.userId.uuidString)
-          Spacer()
-          Text(attendee.status.displayName)
+        
+        ForEach(model.attendees(for: model.event)) { attendee in
+          HStack {
+            Text(attendee.userId.uuidString)
+            Spacer()
+            Text(attendee.status.displayName)
+          }
+          .font(.caption2)
         }
-        .font(.caption2)
-      }
-      
-      
+//      }
+//      .frame(height: 300)
       
       HStack {
-        
         if model.currentUser?.status ?? .invited != .notAttending {
           Button {
-            model.declineEventInvitation()
+            Task {
+              await model.declineEventInvitation()
+            }
           } label: {
             ZStack {
               RoundedRectangle(cornerRadius: 8)
@@ -216,7 +208,9 @@ struct EventDetailView: View {
         
         if model.currentUser?.status ?? .invited != .attending {
           Button {
-            model.acceptEventInvitation()
+            Task {
+              await model.acceptEventInvitation()
+            }
           } label: {
             ZStack {
               RoundedRectangle(cornerRadius: 8)
@@ -228,12 +222,13 @@ struct EventDetailView: View {
       }
       .frame(height: 50)
       .navigationTitle(model.event.title)
-    }
-    .task {
-      await model.loadTask()
-    }
-    .onAppear {
-      print("%%%% selectedUserID: \(model.currentUserIDString)")
+      .task {
+        await model.loadTask()
+      }
+      .onAppear {
+        print("%%%% selectedUserID: \(model.currentUserIDString)")
+      }
+      Spacer()
     }
   }
 }
@@ -243,10 +238,11 @@ struct EventDetailView: View {
     try! $0.bootstrapDatabase()
     try! $0.defaultDatabase.seed()
     return try! $0.defaultDatabase.read { db in
-          try Event.fetchOne(db)!
-        }
+      try Event.fetchOne(db)!
+    }
   }
   NavigationStack {
     EventDetailView(event: event)
+      .padding()
   }
 }

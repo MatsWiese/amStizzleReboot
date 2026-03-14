@@ -13,6 +13,13 @@ import SQLiteData
   @ObservationIgnored @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerModel")
   
+  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
+
+  private var currentUserUUID: UUID {
+    UUID(uuidString: currentUserIDString)
+    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+  }
+  
   let event: Event
   var isNewUserAlertPresented = false
   var newUserFirstName = ""
@@ -87,6 +94,7 @@ import SQLiteData
     await withErrorReporting {
       _ = try await $users.load(
         User
+          .where { $0.id.neq(currentUserUUID) }
           .order {
             if sortForAttendance {
               $0.firstName

@@ -18,5 +18,79 @@
             endingLineNumber = "1">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "198DA824-6364-413E-A7AE-C8061473359E"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "Yes"
+            filePath = "amStizzleReboot/LogInView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "signInButtonTapped()"
+            landmarkType = "7">
+            <Actions>
+               <BreakpointActionProxy
+                  ActionExtensionID = "Xcode.BreakpointAction.DebuggerCommand">
+                  <ActionContent
+                     consoleCommand = "expr email = &quot;stamwiese@gmail.com&quot;">
+                  </ActionContent>
+               </BreakpointActionProxy>
+               <BreakpointActionProxy
+                  ActionExtensionID = "Xcode.BreakpointAction.DebuggerCommand">
+                  <ActionContent
+                     consoleCommand = "expr password = &quot;33s3&quot;">
+                  </ActionContent>
+               </BreakpointActionProxy>
+            </Actions>
+            <Locations>
+               <Location
+                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - 12d4b4a159bde7f2"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "73"
+                  endingLineNumber = "73">
+               </Location>
+               <Location
+                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - f0388349421d8e22"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () async -&gt; () in amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "73"
+                  endingLineNumber = "73">
+               </Location>
+               <Location
+                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - 76e661257aeef366"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for closure #1 () async -&gt; () in amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "73"
+                  endingLineNumber = "73">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

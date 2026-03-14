@@ -37,18 +37,12 @@ nonisolated(unsafe) private let logger = Logger(
     var description: String?
     var startDate: Date
     var endDate: Date
+    var creatorId: User.ID
 //    var attendees: [User]
 //  var attendenceDeadline: Date
 //  var creationDate: Date
 //  var modificationDate: Date
 }
-
-//enum AttendanceStatus: QueryBindable {
-//  case invited
-//  case attending
-//  case notAttending
-//  case unsure
-//}
 
 struct AttandanceStatus: RawRepresentable, QueryBindable {
   let rawValue: Int
@@ -139,7 +133,8 @@ func appDatabase() throws -> any DatabaseWriter {
         "title" TEXT NOT NULL DEFAULT '',
         "description" TEXT,
         "startDate" TEXT NOT NULL,
-        "endDate" TEXT NOT NULL
+        "endDate" TEXT NOT NULL,
+        "creatorId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
       )
       """
     )
@@ -171,10 +166,10 @@ extension DatabaseWriter {
   func seed() throws {
     try write { db in
      try db.seed {
-       Event(id: UUID(1), title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600)
+       Event(id: UUID(1), title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600, creatorId: UUID(1))
 //       Event.Draft(title: "Christmas Eve", startDate: Date.now, endDate: Date.now + 3600)
-       Event.Draft(title: "Silvester Party", startDate: Date.now, endDate: Date.now + 7200)
-       Event.Draft(title: "Birthday", startDate: Date.now, endDate: Date.now + 1010800)
+       Event.Draft(id: UUID(2), title: "Silvester Party", startDate: Date.now, endDate: Date.now + 7200, creatorId: UUID(1))
+       Event.Draft(id: UUID(3), title: "Birthday", startDate: Date.now, endDate: Date.now + 1010800, creatorId: UUID(1))
       }
       try db.seed {
         User.Draft(id: UUID(1), firstName: "Arthur", lastName: "Dent")
@@ -182,7 +177,7 @@ extension DatabaseWriter {
         User.Draft(id: UUID(3), firstName: "Barbara", lastName: "Gordon")
        }
       try db.seed {
-        EventAttendee.Draft(eventId: UUID(1), userId: UUID(1), status: .invited)
+        EventAttendee.Draft(eventId: UUID(2), userId: UUID(1), status: .invited)
         EventAttendee.Draft(eventId: UUID(1), userId: UUID(2), status: .attending)
         EventAttendee.Draft(eventId: UUID(1), userId: UUID(3), status: .notAttending)
        }

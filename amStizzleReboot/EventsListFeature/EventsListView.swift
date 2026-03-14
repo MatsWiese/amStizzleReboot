@@ -9,96 +9,146 @@ import SQLiteData
 import SwiftUI
 
 struct EventsListView: View {
-  @Selection struct Row {
+  @Selection struct EventRow {
     let event: Event
     let attendeeCount: Int
   }
-  @AppStorage("selectedUserID") var selectedUserID: String = ""
   
-#warning("Fetch only events for the selectedUserID")
-  @FetchAll(
-    Event
-      .group(by: \.id)
-      .leftJoin(EventAttendee.all) { $0.id.eq($1.eventId) }
-      .select { Row.Columns(event: $0, attendeeCount: $1.count()) },
-    animation: .default
-  ) var rows/*: [Row]*/
- 
+  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
+  
+  private var currentUserUUID: UUID {
+    UUID(uuidString: currentUserIDString)
+    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+  }
+  
+  @State private var eventRows: [EventRow] = []
+  //  @State private var allEvents: [Event] = []
+  
+  @ObservationIgnored @FetchAll/*(Event.none)*/ var allEvents: [Event]
+  
   @State var isNewEventSheetPresented = false
   
-  @State var changeUserSheet = false
+  @State var showAccountSheet = false
   
   @Dependency(\.defaultDatabase) var database
-
+  
   var body: some View {
-    List {
-      ForEach(rows, id: \.event.id) { row in
-        NavigationLink {
-          EventDetailView(event: row.event)
-        } label: {
-          HStack {
-            VStack(alignment: .leading) {
-              Text(row.event.title)
-                .font(.headline)
+    NavigationStack {
+      List {
+        Section("Users Events") {
+          ForEach(eventRows, id: \.event.id) { row in
+            NavigationLink {
+              EventDetailView(event: row.event)
+            } label: {
               HStack {
-                Text(row.event.startDate.formatted(date: .abbreviated, time: .omitted))
-                
-                let duration = DateInterval(start: row.event.startDate, end: row.event.endDate)
-                Text(duration)
-              }
-            }
-            Spacer()
-            HStack {
-              if row.attendeeCount == 1 {
-                Image(systemName: "person")
-              } else if row.attendeeCount == 2 {
-                Image(systemName: "person.2")
-              } else if row.attendeeCount == 3 {
-                Image(systemName: "person.3")
-              } else if row.attendeeCount > 3 {
-                Text("\(row.attendeeCount)")
-                Image(systemName: "person.3")
+                VStack(alignment: .leading) {
+                  Text(row.event.title)
+                    .font(.headline)
+                  HStack {
+                    Text(row.event.startDate.formatted(date: .abbreviated, time: .omitted))
+                    
+                    let duration = DateInterval(start: row.event.startDate, end: row.event.endDate)
+                    Text(duration)
+                  }
+                }
+                Spacer()
+                HStack {
+                  if row.attendeeCount == 1 {
+                    Image(systemName: "person")
+                  } else if row.attendeeCount == 2 {
+                    Image(systemName: "person.2")
+                  } else if row.attendeeCount == 3 {
+                    Image(systemName: "person.3")
+                  } else if row.attendeeCount > 3 {
+                    Text("\(row.attendeeCount)")
+                    Image(systemName: "person.3")
+                  }
+                }
               }
             }
           }
+          .onDelete { offsets in
+            withErrorReporting {
+              try database.write { db in
+                try Event.find(offsets.map { eventRows[$0].event.id })
+                  .delete()
+                  .execute(db)
+              }
+            }
+            loadRows()
+          }
         }
-      }
-      .onDelete { offsets in
-        withErrorReporting {
-          try database.write { db in
-            try Event.find(offsets.map { rows[$0].event.id })
-              .delete()
-              .execute(db)
+        Section("All Events") {
+          ForEach(allEvents) { event in
+            VStack(alignment: .leading) {
+              Text(event.title)
+                .font(.headline)
+            }
+          }
+          .onDelete { offsets in
+            withErrorReporting {
+              try database.write { db in
+                try Event.find(offsets.map { allEvents[$0].id })
+                  .delete()
+                  .execute(db)
+              }
+            }
+            loadRows()
           }
         }
       }
-    }
-    .navigationTitle("Events")
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-//          newEventTitle = ""
-          isNewEventSheetPresented = true
-        } label: {
-          Label("Add Event", systemImage: "plus")
+      .navigationTitle("Events")
+      .task(id: currentUserIDString) {
+        loadRows()
+      }
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            //          newEventTitle = ""
+            isNewEventSheetPresented = true
+          } label: {
+            Label("Add Event", systemImage: "plus")
+          }
+        }
+        ToolbarItem(placement: .topBarLeading) {
+          Button {
+            showAccountSheet = true
+          } label: {
+            Label("ChangeUser", systemImage: "person")
+          }
         }
       }
-      ToolbarItem(placement: .topBarLeading) {
-        Button {
-          changeUserSheet = true
-        } label: {
-          Label("ChangeUser", systemImage: "person.fill.and.arrow.left.and.arrow.right.outward")
+      .sheet(isPresented: $isNewEventSheetPresented) {
+        NavigationStack {
+          CreateEventSheet()
+        }
+      }
+      .sheet(isPresented: $showAccountSheet) {
+        NavigationStack {
+          AccountView()
         }
       }
     }
-    .sheet(isPresented: $isNewEventSheetPresented) {
-      NavigationStack {
-        CreateEventSheet()
-      }
-    }
-    .sheet(isPresented: $changeUserSheet) {
-      NavigationStack {
-        DebugChangeUserView()
+  }
+  
+#warning("Doesn't load Users Events after adding a new one.")
+  private func loadRows() {
+    withErrorReporting {
+      try database.read { db in
+        let invitedEventIds = EventAttendee
+          .where { $0.userId.eq(currentUserUUID) }
+          .select { $0.eventId }
+        
+        let query = Event
+          .leftJoin(EventAttendee.all) { event, attendee in
+            event.id.eq(attendee.eventId)
+            && attendee.status.eq(AttandanceStatus.attending)
+          }
+          .where { event, _ in event.id.in(invitedEventIds) }
+          .group(by: { event, _ in event.id })
+          .select { EventRow.Columns(event: $0, attendeeCount: $1.count()) }
+        
+        eventRows = try query.fetchAll(db)
       }
     }
   }

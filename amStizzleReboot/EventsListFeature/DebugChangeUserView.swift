@@ -5,21 +5,43 @@
 //  Created by Fred Erik on 02.03.26.
 //
 
+import os
 import SwiftUI
 import SQLiteData
 
 struct DebugChangeUserView: View {
+  @ObservationIgnored @Dependency(\.defaultDatabase) var database
   @Environment(\.dismiss) var dismiss
-  @AppStorage("selectedUserID") var selectedUserID: String = ""
+  let logger = Logger(subsystem: "amStizzleReboot", category: "DebugChangeUserView")
+  @AppStorage("selectedUserID") var currentUserIDString: String = ""
   
   @FetchAll
   var users: [User]
   
+  @State private var newUserFirstName: String = ""
+  @State private var newUserLastName: String = ""
+  
   var body: some View {
     List {
+      HStack {
+        TextField("First name", text: $newUserFirstName)
+        TextField("Last name", text: $newUserLastName)
+        Button {
+          withErrorReporting {
+            try database.write { db in
+              try User.insert { User.Draft(firstName: newUserFirstName, lastName: newUserLastName)
+              }
+              .execute(db)
+            }
+          }
+          logger.info(">>>>> new User inserted")
+        } label: {
+          Image(systemName: "plus.circle.fill")
+        }
+      }
       ForEach(users) { user in
         Button(action: {
-          selectedUserID = user.id.uuidString
+          currentUserIDString = user.id.uuidString
           dismiss()
         }) {
           HStack {
@@ -29,9 +51,10 @@ struct DebugChangeUserView: View {
                 Text(user.lastName)
               }
               Text("\(user.id.uuidString)")
-                .font(.callout)
+                .font(.caption2)
             }
-            if user.id.uuidString == selectedUserID {
+            Spacer()
+            if user.id.uuidString == currentUserIDString {
               Image(systemName: "checkmark")
             }
           }
@@ -47,7 +70,7 @@ struct DebugChangeUserView: View {
     try! $0.defaultDatabase.seed()
     return try! $0.defaultDatabase.read { db in
       try User.fetchAll(db)
-        }
+    }
   }
-    DebugChangeUserView()
+  DebugChangeUserView()
 }
