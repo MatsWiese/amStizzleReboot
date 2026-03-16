@@ -124,7 +124,8 @@ struct ProfileView: View {
     
     func updateProfileButtonTapped() {
       Task {
-        isLoading = true        defer { isLoading = false }
+        isLoading = true
+        defer { isLoading = false }
         do {
 //          let imageURL = try await uploadImage()
           

@@ -12,7 +12,8 @@ class Supabase {
   static let shared = SupabaseClient(
     supabaseURL:
       URL(string: "https://urexdmyfiqtievtbpcnx.supabase.co")!,
-    supabaseKey: "sb_publishable_BIfX14NlCjhsyjoVJBg2Ag_RcP_IkFY"
+    supabaseKey: "sb_publishable_BIfX14NlCjhsyjoVJBg2Ag_RcP_IkFY",
+    options: .init(auth: .init(emitLocalSessionAsInitialSession: true))
   )
   private init() { }
 }
