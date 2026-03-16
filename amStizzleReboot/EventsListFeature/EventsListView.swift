@@ -125,7 +125,7 @@ struct EventsListView: View {
       }
       .sheet(isPresented: $showAccountSheet) {
         NavigationStack {
-          AccountView()
+          ProfileView()
         }
       }
     }

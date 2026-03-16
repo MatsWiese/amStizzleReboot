@@ -51,7 +51,7 @@ struct amStizzleRebootApp: App {
           case .login:
           LogInView()
           case .authenticated:
-          EventsListView()
+          ProfileView()
         }
       }
     }

@@ -7,16 +7,16 @@
 
 import Foundation
 
-struct Profile: Decodable {
+struct Profile: Codable {
   let firstName: String?
   let lastName: String?
   let username: String?
-  let avatarURL: String?
+//  let avatarURL: String?
 
   enum CodingKeys: String, CodingKey {
     case firstName = "first_name"
     case lastName = "last_name"
     case username
-    case avatarURL = "avatar_url"
+//    case avatarURL = "avatar_url"
   }
 }

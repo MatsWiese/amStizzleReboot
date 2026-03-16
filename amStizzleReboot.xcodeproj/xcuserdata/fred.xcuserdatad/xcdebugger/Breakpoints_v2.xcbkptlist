@@ -92,5 +92,169 @@
             </Locations>
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8640EA00-C048-42A2-BAEE-28944BA84CCE"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "amStizzleReboot/AccountView/AccountView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "102"
+            endingLineNumber = "102"
+            landmarkName = "getInitialProfile()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "6A433AE9-1B58-4039-886D-EEA5F7288B7E"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "amStizzleReboot/AccountView/AccountView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "90"
+            endingLineNumber = "90"
+            landmarkName = "getInitialProfile()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "6A433AE9-1B58-4039-886D-EEA5F7288B7E - d3ef303708ae2ac6"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for amStizzleReboot.AccountView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/AccountView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "91"
+                  endingLineNumber = "91">
+               </Location>
+               <Location
+                  uuid = "6A433AE9-1B58-4039-886D-EEA5F7288B7E - 3c1291eab2bcce99"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for amStizzleReboot.AccountView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/AccountView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "91"
+                  endingLineNumber = "91">
+               </Location>
+               <Location
+                  uuid = "6A433AE9-1B58-4039-886D-EEA5F7288B7E - 7e5c1375544286d4"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for amStizzleReboot.AccountView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/AccountView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "91"
+                  endingLineNumber = "91">
+               </Location>
+               <Location
+                  uuid = "6A433AE9-1B58-4039-886D-EEA5F7288B7E - c8ea3a51e0ea0c87"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(8) suspend resume partial function for amStizzleReboot.AccountView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/AccountView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "91"
+                  endingLineNumber = "91">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3095FEF2-A069-4905-8713-D74FAEF01F24"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "amStizzleReboot/AccountView/ProfileView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "103"
+            endingLineNumber = "103"
+            landmarkName = "getInitialProfile()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "3095FEF2-A069-4905-8713-D74FAEF01F24 - 1cb68836497a4018"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for amStizzleReboot.ProfileView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/ProfileView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "103"
+                  endingLineNumber = "103">
+               </Location>
+               <Location
+                  uuid = "3095FEF2-A069-4905-8713-D74FAEF01F24 - a9027e92b84b683f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) await resume partial function for amStizzleReboot.ProfileView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/ProfileView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "103"
+                  endingLineNumber = "103">
+               </Location>
+               <Location
+                  uuid = "3095FEF2-A069-4905-8713-D74FAEF01F24 - b62667f465dee40e"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(5) suspend resume partial function for amStizzleReboot.ProfileView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/ProfileView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "103"
+                  endingLineNumber = "103">
+               </Location>
+               <Location
+                  uuid = "3095FEF2-A069-4905-8713-D74FAEF01F24 - 219742aa12b1883c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(7) suspend resume partial function for amStizzleReboot.ProfileView.getInitialProfile() async -&gt; ()"
+                  moduleName = "amStizzleReboot.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/AccountView/ProfileView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "103"
+                  endingLineNumber = "103">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>
