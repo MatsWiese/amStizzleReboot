@@ -25,28 +25,28 @@ struct ProfileView: View {
   var body: some View {
     NavigationStack {
       Form {
-//        Section {
-//          HStack {
-//            Group {
-              //                if let avatarImage {
-              //                  avatarImage.image.resizable()
-              //                } else {
-              //                  Color.clear
-              //                }
-              //              }
-              //              .scaledToFit()
-              //              .frame(width: 80, height: 80)
-              //
-              //              Spacer()
-              
-              //              PhotosPicker(selection: $imageSelection, matching: .images) {
-              //                Image(systemName: "pencil.circle.fill")
-              //                  .symbolRenderingMode(.multicolor)
-              //                  .font(.system(size: 30))
-              //                  .foregroundColor(.accentColor)
-              //              }
-//            }
-//          }
+        Section {
+          HStack {
+            Group {
+              if let avatarImage {
+                avatarImage.image.resizable()
+              } else {
+                Color.clear
+              }
+            }
+            .scaledToFit()
+            .frame(width: 80, height: 80)
+            
+            Spacer()
+            
+            PhotosPicker(selection: $imageSelection, matching: .images) {
+              Image(systemName: "pencil.circle.fill")
+                .symbolRenderingMode(.multicolor)
+                .font(.system(size: 30))
+                .foregroundColor(.accentColor)
+            }
+          }
+        }
           
           Section {
             TextField("First name", text: $firstName)
@@ -68,21 +68,21 @@ struct ProfileView: View {
             }
           }
         }
-        .navigationTitle("Profile")
-        .toolbar(content: {
-          ToolbarItem {
-            Button("Sign out", role: .destructive) {
-              Task {
-                try? await Supabase.shared.auth.signOut()
-              }
+      .navigationTitle("Profile")
+      .toolbar(content: {
+        ToolbarItem {
+          Button("Sign out", role: .destructive) {
+            Task {
+              try? await Supabase.shared.auth.signOut()
             }
           }
-        })
-        //        .onChange(of: imageSelection) { _, newValue in
-        //          guard let newValue else { return }
-        //          loadTransferable(from: newValue)
-        //        }
-//      }
+        }
+      })
+      .onChange(of: imageSelection) { _, newValue in
+        guard let newValue else { return }
+        loadTransferable(from: newValue)
+      }
+      //      }
       .task {
         await getInitialProfile()
       }
@@ -111,9 +111,9 @@ struct ProfileView: View {
         lastName = profile.lastName ?? ""
         username = profile.username ?? ""
         
-//                if let avatarURL = profile.avatarURL, !avatarURL.isEmpty {
-//                  try await downloadImage(path: avatarURL)
-//                }
+        if let avatarURL = profile.avatarURL, !avatarURL.isEmpty {
+          try await downloadImage(path: avatarURL)
+        }
         
       } catch {
 //        debugPrint(error)
@@ -127,7 +127,7 @@ struct ProfileView: View {
         isLoading = true
         defer { isLoading = false }
         do {
-//          let imageURL = try await uploadImage()
+          let imageURL = try await uploadImage()
           
           let currentUser = try await Supabase.shared.auth.session.user
           
@@ -135,7 +135,7 @@ struct ProfileView: View {
             firstName: firstName,
             lastName: lastName,
             username: username,
-//            avatarURL: imageURL
+            avatarURL: imageURL
           )
           
           try await Supabase.shared
@@ -148,39 +148,37 @@ struct ProfileView: View {
         }
       }
     }
-  }
-//    private func loadTransferable(from imageSelection: PhotosPickerItem) {
-//      Task {
-//        do {
-//          avatarImage = try await imageSelection.loadTransferable(type: AvatarImage.self)
-//        } catch {
-//          debugPrint(error)
-//        }
-//      }
-//    }
+    private func loadTransferable(from imageSelection: PhotosPickerItem) {
+      Task {
+        do {
+          avatarImage = try await imageSelection.loadTransferable(type: AvatarImage.self)
+        } catch {
+          debugPrint(error)
+        }
+      }
+    }
 
-//    private func downloadImage(path: String) async throws {
-//      let data = try await Supabase.shared.storage.from("avatars").download(path: path)
-//      avatarImage = AvatarImage(data: data)
-//    }
+    private func downloadImage(path: String) async throws {
+      let data = try await Supabase.shared.storage.from("avatars").download(path: path)
+      avatarImage = AvatarImage(data: data)
+    }
+  
+    private func uploadImage() async throws -> String? {
+      guard let data = avatarImage?.data else { return nil }
 
-//    private func uploadImage() async throws -> String? {
-//      guard let data = avatarImage?.data else { return nil }
-//
-//      let filePath = "\(UUID().uuidString).jpeg"
-//
-//      try await Supabase.shared.storage
-//        .from("avatars")
-//        .upload(
-//          filePath,
-//          data: data,
-//          options: FileOptions(contentType: "image/jpeg")
-//        )
-//
-//      return filePath
-//    }
-//  }
+      let filePath = "\(UUID().uuidString).jpeg"
 
+      try await Supabase.shared.storage
+        .from("avatars")
+        .upload(
+          filePath,
+          data: data,
+          options: FileOptions(contentType: "image/jpeg")
+        )
+
+      return filePath
+    }
+}
 #Preview {
     ProfileView()
 }
