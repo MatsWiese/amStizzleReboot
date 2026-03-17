@@ -7,67 +7,82 @@
 
 import os
 import SwiftUI
-import SQLiteData
+import Supabase
 
-private enum Destination {
-  case attendeeManager(event: Event)
-  
-  var view: some View {
-    switch self {
-    case .attendeeManager(event: let event):
-      AttendeeManagerSheet(event: event)
-    }
-  }
-}
+//private enum Destination {
+//  case attendeeManager(event: Event)
+//  
+//  var view: some View {
+//    switch self {
+//    case .attendeeManager(event: let event):
+//      AttendeeManagerSheet(event: event)
+//    }
+//  }
+//}
 
-extension Destination: Hashable, Equatable {
-  static func == (lhs: Destination, rhs: Destination) -> Bool {
-    switch (lhs, rhs) {
-    case let (.attendeeManager(lhsEvent), .attendeeManager(rhsEvent)):
-      return lhsEvent.id == rhsEvent.id
-    }
-  }
-  
-  func hash(into hasher: inout Hasher) {
-    hasher.combine(self)
-  }
-}
+//extension Destination: Hashable, Equatable {
+//  static func == (lhs: Destination, rhs: Destination) -> Bool {
+//    switch (lhs, rhs) {
+//    case let (.attendeeManager(lhsEvent), .attendeeManager(rhsEvent)):
+//      return lhsEvent.id == rhsEvent.id
+//    }
+//  }
+//  
+//  func hash(into hasher: inout Hasher) {
+//    hasher.combine(self)
+//  }
+//}
 @Observable class CreateEventModel {
-  @ObservationIgnored @Dependency(\.defaultDatabase) var database
+//  @ObservationIgnored @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "CreateEventModel")
   
-  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
+//  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
+//  
+//  private var currentUserUUID: UUID {
+//    UUID(uuidString: currentUserIDString)
+//    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
+//  }
   
-  private var currentUserUUID: UUID {
-    UUID(uuidString: currentUserIDString)
-    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
-  }
-  
-  var event = Event(id: UUID(), title: "", startDate: Date.now, endDate: Date.now + 3600, creatorId: UUID())
+//  var event = Event(id: 0, title: "", details: "", startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now)
+  var currentProfileId: UUID?
   
   var newEventTitle = ""
+  var newEventDetails = ""
   var eventBegin = Date()
   var eventEnd = Date() + 3600
   
   func saveEventButtonTapped() {
-    withErrorReporting {
-      try database.write { db in
-        event.title = newEventTitle
-        event.startDate = eventBegin
-        event.endDate = eventEnd
-        event.creatorId = currentUserUUID
+    Task {
+      do {
+        let event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
         
-        try Event
-          .upsert { event }
-          .execute(db)
-        
-        
-#warning("Creating user gets upserted two times when using NavLink to AttendeeManagerSheet")
-        try EventAttendee
-          .upsert { EventAttendee(id: currentUserUUID, eventId: event.id, userId: UUID(uuidString: currentUserIDString)! /* ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"))!*/, status: .invited) }
-          .execute(db)
+        try await Supabase.shared
+          .from("events")
+          .insert(event)
+          .eq("profile_id", value: currentProfileId)
+          .execute()
+      } catch {
+        logger.error("\(error.localizedDescription)")
       }
     }
+//    withErrorReporting {
+//      try database.write { db in
+//        event.title = newEventTitle
+//        event.startDate = eventBegin
+//        event.endDate = eventEnd
+//        event.creatorId = currentUserUUID
+//        
+//        try Event
+//          .upsert { event }
+//          .execute(db)
+//        
+//        
+//#warning("Creating user gets upserted two times when using NavLink to AttendeeManagerSheet")
+//        try EventAttendee
+//          .upsert { EventAttendee(id: currentUserUUID, eventId: event.id, userId: UUID(uuidString: currentUserIDString)! /* ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"))!*/, status: .invited) }
+//          .execute(db)
+//      }
+//    }
   }
 }
 
@@ -75,14 +90,14 @@ struct CreateEventSheet: View {
   @Environment(\.dismiss) var dismiss
   
   @State var model: CreateEventModel
-  @State private var path: [Destination] = []
+//  @State private var path: [Destination] = []
   
   init() {
     _model = State(wrappedValue: CreateEventModel())
   }
   
   var body: some View {
-    NavigationStack(path: $path) {
+    NavigationStack/*(path: $path)*/ {
       Form {
         Section {
           TextField("Event title", text: $model.newEventTitle)
@@ -103,8 +118,8 @@ struct CreateEventSheet: View {
         //          print("saved saved saved")
         //        } )
         Button {
-          model.saveEventButtonTapped()
-          path.append(.attendeeManager(event: model.event))
+//          model.saveEventButtonTapped()
+//          path.append(.attendeeManager(event: model.event))
         } label: {
           HStack {
             Text("Manage attendees")
@@ -114,7 +129,7 @@ struct CreateEventSheet: View {
         }
         .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
-      .navigationDestination(for: Destination.self, destination: \.view)
+//      .navigationDestination(for: Destination.self, destination: \.view)
     }
     .navigationTitle("New Event")
     .toolbar {
@@ -128,6 +143,37 @@ struct CreateEventSheet: View {
         }
         .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
+    }
+    .task {
+      await getInitialProfile()
+    }
+  }
+  func getInitialProfile() async {
+    do {
+      let currentUser = try await Supabase.shared.auth.session.user
+      
+      model.logger.info("Current user: \(currentUser.id)")
+      
+      model.currentProfileId = currentUser.id
+//      let profile: Profile =
+//      try await Supabase.shared
+//        .from("profiles")
+//        .select()
+//        .eq("id", value: currentUser.id)
+//        .single()
+//        .execute()
+//        .value
+      
+//      model.logger.info("\(profile.firstName!)")
+//      model.logger.info("\(profile.lastName!)")
+//      model.logger.info("\(profile.username!)")
+      
+//      if let avatarURL = profile.avatarURL, !avatarURL.isEmpty {
+//        try await downloadImage(path: avatarURL)
+//      }
+      
+    } catch {
+      model.logger.error("\(error)")
     }
   }
 }
