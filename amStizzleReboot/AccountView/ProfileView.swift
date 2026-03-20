@@ -132,10 +132,13 @@ struct ProfileView: View {
           let currentUser = try await Supabase.shared.auth.session.user
           
           let updatedProfile = Profile(
+            id: currentUser.id,
             firstName: firstName,
             lastName: lastName,
             username: username,
-            avatarURL: imageURL
+            avatarURL: imageURL,
+            createdAt: Date.now,
+            updatedAt: Date.now
           )
           
           try await Supabase.shared

@@ -9,29 +9,6 @@ import os
 import SwiftUI
 import Supabase
 
-//private enum Destination {
-//  case attendeeManager(event: Event)
-//  
-//  var view: some View {
-//    switch self {
-//    case .attendeeManager(event: let event):
-//      AttendeeManagerSheet(event: event)
-//    }
-//  }
-//}
-
-//extension Destination: Hashable, Equatable {
-//  static func == (lhs: Destination, rhs: Destination) -> Bool {
-//    switch (lhs, rhs) {
-//    case let (.attendeeManager(lhsEvent), .attendeeManager(rhsEvent)):
-//      return lhsEvent.id == rhsEvent.id
-//    }
-//  }
-//  
-//  func hash(into hasher: inout Hasher) {
-//    hasher.combine(self)
-//  }
-//}
 @Observable class CreateEventModel {
 //  @ObservationIgnored @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "CreateEventModel")
@@ -42,8 +19,9 @@ import Supabase
 //    UUID(uuidString: currentUserIDString)
 //    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
 //  }
+//  var event: Event
+  var event = Event(id: UUID(), title: "", details: "", startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID())
   
-//  var event = Event(id: 0, title: "", details: "", startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now)
   var currentProfileId: UUID?
   
   var newEventTitle = ""
@@ -54,17 +32,18 @@ import Supabase
   func saveEventButtonTapped() {
     Task {
       do {
-        let event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
+        event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
         
         try await Supabase.shared
           .from("events")
           .insert(event)
-          .eq("profile_id", value: currentProfileId)
+          .eq("creator_id", value: currentProfileId)
           .execute()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
     }
+  }
 //    withErrorReporting {
 //      try database.write { db in
 //        event.title = newEventTitle
@@ -83,21 +62,21 @@ import Supabase
 //          .execute(db)
 //      }
 //    }
-  }
+//  }
 }
 
 struct CreateEventSheet: View {
   @Environment(\.dismiss) var dismiss
   
-  @State var model: CreateEventModel
-//  @State private var path: [Destination] = []
+  @State var model = CreateEventModel()
+  @State private var path: [Destination] = []
   
-  init() {
-    _model = State(wrappedValue: CreateEventModel())
-  }
+//  init() {
+//    _model = State(wrappedValue: CreateEventModel())
+//  }
   
   var body: some View {
-    NavigationStack/*(path: $path)*/ {
+    NavigationStack(path: $path) {
       Form {
         Section {
           TextField("Event title", text: $model.newEventTitle)
@@ -110,16 +89,16 @@ struct CreateEventSheet: View {
         }
         
 #warning("Navlink upserts event. not best solution I guess")
-        //        NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
-        //          Text("Manage Attendees")
-        //        }
+//                NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
+//                  Text("Manage Attendees")
+//                }
         //        .simultaneousGesture(TapGesture().onEnded {
         //          model.saveEventButtonTapped()
         //          print("saved saved saved")
-        //        } )
+//                } )
         Button {
 //          model.saveEventButtonTapped()
-//          path.append(.attendeeManager(event: model.event))
+          path.append(.attendeeManager(event: model.event))
         } label: {
           HStack {
             Text("Manage attendees")
@@ -129,7 +108,7 @@ struct CreateEventSheet: View {
         }
         .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
-//      .navigationDestination(for: Destination.self, destination: \.view)
+      .navigationDestination(for: Destination.self, destination: \.view)
     }
     .navigationTitle("New Event")
     .toolbar {
@@ -178,6 +157,6 @@ struct CreateEventSheet: View {
   }
 }
 
-#Preview {
-  CreateEventSheet()
-}
+//#Preview {
+//  CreateEventSheet()
+//}

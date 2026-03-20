@@ -7,22 +7,20 @@
 
 import Foundation
 
-struct Profile: Codable, Hashable {
+struct EventAttendee: Codable {
   let id: UUID
-  let firstName: String?
-  let lastName: String?
-  let username: String?
-  let avatarURL: String?
   let createdAt: Date?
   let updatedAt: Date?
+  let eventId: UUID?
+  let profileID: UUID?
+  let attendanceStatus: Int?
 
   enum CodingKeys: String, CodingKey {
     case id
-    case firstName = "first_name"
-    case lastName = "last_name"
-    case username
-    case avatarURL = "avatar_url"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
+    case eventId = "event_id"
+    case profileID = "profile_id"
+    case attendanceStatus = "attendance_status"
   }
 }

@@ -45,7 +45,7 @@ struct EventsListView: View {
           Section("My Events") {
             ForEach(userEvents, id: \.id) { event in
               NavigationLink {
-                //              EventDetailView(event: event)
+                EventDetailView(event: event)
               } label: {
                 HStack {
                   VStack(alignment: .leading) {
@@ -57,6 +57,8 @@ struct EventsListView: View {
                       let duration = DateInterval(start: event.startDate!, end: event.endDate!)
                       Text(duration)
                     }
+                    Text(event.id.uuidString)
+                      .font(.caption2)
                   }
                   Spacer()
                   //                HStack {
@@ -96,6 +98,8 @@ struct EventsListView: View {
                   let duration = DateInterval(start: event.startDate ?? Date.now, end: event.endDate ?? Date.now + 60)
                   Text(duration)
                 }
+                Text(event.id.uuidString)
+                  .font(.caption2)
               }
             }
 //                    .onDelete { offsets in
@@ -123,7 +127,7 @@ struct EventsListView: View {
           }
           ToolbarItem(placement: .topBarLeading) {
             Button {
-                          showAccountSheet = true
+              showAccountSheet = true
             } label: {
               if let avatarImage {
                 ZStack {
@@ -185,7 +189,7 @@ struct EventsListView: View {
       try await Supabase.shared
         .from("events")
         .select()
-        .eq("profile_id", value: currentUser.id)
+        .eq("creator_id", value: currentUser.id)
         .execute()
         .value
       
@@ -193,18 +197,39 @@ struct EventsListView: View {
       
       userEvents = fetchedEvents
       
+//      let allFetchedEvents: [Event] =
+//      try await Supabase.shared
+//        .from("events")
+//        .select()
+//        .neq("profile_id", value: currentUser.id)
+//        .execute()
+//        .value
+//      
+//      logger.info("AllEventsCount: \(allFetchedEvents.count)")
+//      
+//      allEvents = allFetchedEvents
+      await loadEvents()
+      
+    } catch {
+      logger.error("\(error)")
+    }
+  }
+  
+  private func loadEvents() async {
+    do {
+    let currentUser = try await Supabase.shared.auth.session.user
+
       let allFetchedEvents: [Event] =
       try await Supabase.shared
         .from("events")
         .select()
-        .neq("profile_id", value: currentUser.id)
+        .neq("creator_id", value: currentUser.id)
         .execute()
         .value
       
       logger.info("AllEventsCount: \(allFetchedEvents.count)")
       
       allEvents = allFetchedEvents
-      
     } catch {
       logger.error("\(error)")
     }

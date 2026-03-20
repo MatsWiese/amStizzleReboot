@@ -25,6 +25,6 @@ struct Event: Codable {
     case endDate = "end_date"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
-    case creatorId = "profile_id"
+    case creatorId = "creator_id"
   }
 }
