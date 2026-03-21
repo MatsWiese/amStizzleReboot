@@ -11,18 +11,9 @@ import Dependencies
 
 @Observable class EventDetailModel {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventDetailView")
-  //  @ObservationIgnored @Dependency(\.defaultDatabase) var database
-  //  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
-  //
+  
   let event: Event
-  //
-  //  @ObservationIgnored @FetchAll(EventAttendee.none)
-  //  var eventAttendees
-  //
-  //  @ObservationIgnored @FetchOne(EventAttendee.none)
-  //  var currentUser
-  //  //    .where($0.userId.eq(UUID(uuidString: currentUserIDString))
-  //
+  
   init(event: Event) {
     self.event = event
   }
@@ -42,9 +33,14 @@ import Dependencies
     createdAt: Date.now,
     updatedAt: Date.now,
     eventId: UUID(),
-    profileID: UUID(),
+    profileId: UUID(),
     attendanceStatus: 0
   )
+  
+  var invitationCount: Int = 0
+  var invitationAcceptedCount: Int = 0
+  var invitationDeclinedCount: Int = 0
+  var unsureAboutInvitationCount: Int = 0
   
   //  func currentUser(for event: Event) -> EventAttendee {
   //    guard let userId = UUID(uuidString: currentUserIDString) else { return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited) }
@@ -97,6 +93,7 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 1")
+//        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -113,6 +110,7 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 3")
+//        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -120,48 +118,117 @@ import Dependencies
   }
   
   func declineEventInvitation() async {
-//    Task {
-      do {
-        try await Supabase.shared
-          .from("event_attendees")
-          .update(["attendance_status" : 2])
-          .eq("profile_id", value: currentProfile.id)
-          .eq("event_id", value: event.id)
-          .execute()
-        logger.info("AttendanceStatus set to 2")
-      } catch {
-        logger.error("\(error.localizedDescription)")
-      }
-//    }
+    //    Task {
+    do {
+      try await Supabase.shared
+        .from("event_attendees")
+        .update(["attendance_status" : 2])
+        .eq("profile_id", value: currentProfile.id)
+        .eq("event_id", value: event.id)
+        .execute()
+      logger.info("AttendanceStatus set to 2")
+//      await loadAttendanceStatus()
+    } catch {
+      logger.error("\(error.localizedDescription)")
+    }
+    //    }
   }
   
-    func reloadAttendeeData() async {
-      do {
-        logger.info("Current user: \(self.currentProfile.id)")
-        
-        let eventAttendee: EventAttendee =
-        try await Supabase.shared
-          .from("event_attendees")
-          .select()
-          .eq("id", value: currentProfile.id)
-          .eq("event_id", value: event.id)
-          .single()
-          .execute()
-          .value
-        
-        currentEventAttendee = eventAttendee
-        
-      } catch {
-        logger.error("\(error)")
-      }
-//      await withErrorReporting {
-//        _ = try await $eventAttendees.load(
-//          EventAttendee
-//            .where { $0.eventId.eq(event.id) }
-//          , animation: .default
-//        )
-//      }
+  func reloadAttendeeData() async {
+    do {
+      logger.info("Current user: \(self.currentProfile.id)")
+      
+      let eventAttendee: EventAttendee =
+      try await Supabase.shared
+        .from("event_attendees")
+        .select()
+        .eq("profile_id", value: currentProfile.id)
+        .eq("event_id", value: event.id)
+        .single()
+        .execute()
+        .value
+      
+      logger.info("current AttendanceStatus: \(eventAttendee.attendanceStatus?.description ?? "nil")")
+      currentEventAttendee = eventAttendee
+      
+    } catch {
+      logger.error("\(error)")
     }
+  }
+  
+  func loadAttendanceStatus() async {
+    do {
+      let invitationCount: Int? =
+      try await Supabase.shared
+        .from("event_attendees")
+        .select(head: true, count: .exact)
+        .eq("event_id", value: event.id)
+        .eq("attendance_status", value: 0)
+        .execute()
+        .count
+      
+      logger.info("InvitationCount: \(invitationCount ?? -1)")
+      
+      self.invitationCount = invitationCount ?? -1
+      
+    } catch {
+      logger.error("\(error)")
+    }
+    
+    do {
+      let invitationAcceptedCount: Int? =
+      try await Supabase.shared
+        .from("event_attendees")
+        .select(head: true, count: .exact)
+        .eq("event_id", value: event.id)
+        .eq("attendance_status", value: 1)
+        .execute()
+        .count
+      
+      logger.info("invitationAcceptedCount: \(invitationAcceptedCount ?? -1)")
+      
+      self.invitationAcceptedCount = invitationAcceptedCount ?? -1
+      
+    } catch {
+      logger.error("\(error)")
+    }
+    
+    do {
+      let invitationDeclinedCount: Int? =
+      try await Supabase.shared
+        .from("event_attendees")
+        .select(head: true, count: .exact)
+        .eq("event_id", value: event.id)
+        .eq("attendance_status", value: 2)
+        .execute()
+        .count
+      
+      logger.info("invitationDeclinedCount: \(invitationDeclinedCount ?? -1)")
+      
+      self.invitationDeclinedCount = invitationDeclinedCount ?? -1
+      
+    } catch {
+      logger.error("\(error)")
+    }
+    
+    do {
+      let unsureAboutInvitationCount: Int? =
+      try await Supabase.shared
+        .from("event_attendees")
+        .select(head: true, count: .exact)
+        .eq("event_id", value: event.id)
+        .eq("attendance_status", value: 3)
+        .execute()
+        .count
+      
+      logger.info("unsureAboutInvitationCount: \(unsureAboutInvitationCount ?? -1)")
+      
+      self.unsureAboutInvitationCount = unsureAboutInvitationCount ?? -1
+      
+    } catch {
+      logger.error("\(error)")
+    }
+}
   
   func reloadCurrentUserData() async {
     do {
@@ -189,6 +256,7 @@ import Dependencies
   func loadTask() async {
     await reloadAttendeeData()
     await reloadCurrentUserData()
+    await loadAttendanceStatus()
   }
 }
 
@@ -216,30 +284,32 @@ struct EventDetailView: View {
         Text("Creator: ")
         Spacer()
         Text(model.currentProfile.username ?? "Anonymous")
-//          .font(.caption2)
+        //          .font(.caption2)
       }
       HStack {
         Text("Attendance Status: ")
         Spacer()
         Text(model.currentEventAttendee.attendanceStatus?.description ?? "Unknown")
-//          .font(.caption2)
+        //          .font(.caption2)
       }
       
       
-      
-      NavigationLink("Manager", destination: AttendeeManagerSheet(event: model.event))
-      //      {
-#warning("works only when coming from EventsList")
-      //          HStack {
-      //            Text("Attendees: ")
-      //            Text("\(model.attendeeCount(for: model.event))")
-      //            Spacer()
-      //            Text("Declined: ")
-      //            Text("\(model.declinedCount(for: model.event))")
-      //            Spacer()
-      //            Text("Invited: ")
-      //            Text("\(model.invitationCount(for: model.event))")
-      //          }
+      HStack {
+        NavigationLink("Manage Attendees", destination: AttendeeManagerSheet(event: model.event))
+        Spacer()
+        Text("Invited: ")
+        Text("\(model.invitationCount)")
+      }
+      HStack {
+        Text("Declined: ")
+        Text("\(model.invitationDeclinedCount)")
+        Spacer()
+        Text("Maybe: ")
+        Text("\(model.unsureAboutInvitationCount)")
+        Spacer()
+        Text("Attendees: ")
+        Text("\(model.invitationAcceptedCount)")
+      }
       //        }
       //
       //        ForEach(model.attendees(for: model.event)) { attendee in
@@ -254,12 +324,12 @@ struct EventDetailView: View {
       //      .frame(height: 300)
       
       HStack {
-        //        if model.currentUser?.status ?? .invited != .notAttending {
         if model.currentEventAttendee.attendanceStatus != 2 {
           Button {
             Task {
               await model.declineEventInvitation()
               await model.loadTask()
+              //                reload Attendance_Counts
             }
           } label: {
             ZStack {
@@ -270,60 +340,49 @@ struct EventDetailView: View {
           }
         }
         
-        //        if model.currentUser?.status ?? .invited != .unsure {
-          if model.currentEventAttendee.attendanceStatus != 3 {
-            Button {
-              Task {
-                await model.unsureEventInvitation()
-                await model.loadTask()
-              }
-            } label: {
-              ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                  .fill(Color.yellow)
-                Text("maybe")
-              }
-              .frame(width: 70)
+        if model.currentEventAttendee.attendanceStatus != 3 {
+          Button {
+            Task {
+              await model.unsureEventInvitation()
+              await model.loadTask()
+              //                reload Attendance_Counts
             }
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.yellow)
+              Text("maybe")
+            }
+            .frame(width: 70)
           }
+        }
         
-        //        if model.currentUser?.status ?? .invited != .attending {
-          if model.currentEventAttendee.attendanceStatus != 1 {
-            Button {
-              Task {
-                await model.acceptEventInvitation()
-                await model.loadTask()
-              }
-            } label: {
-              ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                  .fill(Color.green)
-                Text("am Stizzle!")
-              }
+        if model.currentEventAttendee.attendanceStatus != 1 {
+          Button {
+            Task {
+              await model.acceptEventInvitation()
+              await model.loadTask()
+            }
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(Color.green)
+              Text("am Stizzle!")
             }
           }
+        }
       }
       .frame(height: 50)
       .navigationTitle(model.event.title ?? "Event")
       .task {
         await model.loadTask()
       }
-      //      .onAppear {
-      //        print("%%%% selectedUserID: \(model.currentUserIDString)")
-      //      }
       Spacer()
     }
   }
 }
 
 #Preview {
-  //  let event = prepareDependencies {
-  //    try! $0.bootstrapDatabase()
-  //    try! $0.defaultDatabase.seed()
-  //    return try! $0.defaultDatabase.read { db in
-  //      try Event.fetchOne(db)!
-  //    }
-  //  }
   let event = Event(id: UUID(1), title: "Hello, World!", details: "", startDate: Date.now, endDate: Date.now, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID(1))
   
   NavigationStack {

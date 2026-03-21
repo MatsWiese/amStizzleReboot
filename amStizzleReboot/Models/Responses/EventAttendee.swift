@@ -12,7 +12,7 @@ struct EventAttendee: Codable {
   let createdAt: Date?
   let updatedAt: Date?
   let eventId: UUID?
-  let profileID: UUID?
+  let profileId: UUID?
   let attendanceStatus: Int?
 
   enum CodingKeys: String, CodingKey {
@@ -20,7 +20,7 @@ struct EventAttendee: Codable {
     case createdAt = "created_at"
     case updatedAt = "updated_at"
     case eventId = "event_id"
-    case profileID = "profile_id"
+    case profileId = "profile_id"
     case attendanceStatus = "attendance_status"
   }
 }

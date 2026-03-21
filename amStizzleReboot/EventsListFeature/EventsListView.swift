@@ -5,7 +5,6 @@
 //  Created by Fred Erik on 18.12.25.
 //
 
-//import SQLiteData
 import os
 import SwiftUI
 import Supabase
@@ -14,29 +13,12 @@ struct EventsListView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventsListView")
   
   @State var avatarImage: AvatarImage?
-//  @Selection struct EventRow {
-//    let event: Event
-//    let attendeeCount: Int
-//  }
-  
-//  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
-//  
-//  private var currentUserUUID: UUID {
-//    UUID(uuidString: currentUserIDString)
-//    ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
-//  }
-  
-//  @State private var eventRows: [EventRow] = []
-    @State private var userEvents: [Event] = []
-    @State private var allEvents: [Event] = []
-  
-//  @ObservationIgnored @FetchAll/*(Event.none)*/ var allEvents: [Event]
+  @State private var userEvents: [Event] = []
+  @State private var allEvents: [Event] = []
   
   @State var isNewEventSheetPresented = false
   
   @State var showAccountSheet = false
-  
-//  @Dependency(\.defaultDatabase) var database
   
   var body: some View {
     NavigationStack {
@@ -114,6 +96,9 @@ struct EventsListView: View {
 //                    }
                   }
         }
+        .refreshable {
+          await loadEvents()
+        }
       }
         .navigationTitle("Events")
         .toolbar {
@@ -185,23 +170,23 @@ struct EventsListView: View {
         try await downloadImage(path: avatarURL)
       }
       
-      let fetchedEvents: [Event] =
-      try await Supabase.shared
-        .from("events")
-        .select()
-        .eq("creator_id", value: currentUser.id)
-        .execute()
-        .value
-      
-      logger.info("MyEventsCount: \(fetchedEvents.count)")
-      
-      userEvents = fetchedEvents
-      
+//      let fetchedEvents: [Event] =
+//      try await Supabase.shared
+//        .from("events")
+//        .select()
+//        .eq("creator_id", value: currentUser.id)
+//        .execute()
+//        .value
+//      
+//      logger.info("MyEventsCount: \(fetchedEvents.count)")
+//      
+//      userEvents = fetchedEvents
+//      
 //      let allFetchedEvents: [Event] =
 //      try await Supabase.shared
 //        .from("events")
 //        .select()
-//        .neq("profile_id", value: currentUser.id)
+//        .neq("creator_id", value: currentUser.id)
 //        .execute()
 //        .value
 //      
@@ -219,6 +204,18 @@ struct EventsListView: View {
     do {
     let currentUser = try await Supabase.shared.auth.session.user
 
+      let fetchedEvents: [Event] =
+      try await Supabase.shared
+        .from("events")
+        .select()
+        .eq("creator_id", value: currentUser.id)
+        .execute()
+        .value
+      
+      logger.info("MyEventsCount: \(fetchedEvents.count)")
+      
+      userEvents = fetchedEvents
+      
       let allFetchedEvents: [Event] =
       try await Supabase.shared
         .from("events")

@@ -34,11 +34,20 @@ import Supabase
       do {
         event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
         
+        let eventAttendee = EventAttendee(id: UUID(), createdAt: Date.now, updatedAt: Date.now, eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0)
+        
         try await Supabase.shared
           .from("events")
           .insert(event)
           .eq("creator_id", value: currentProfileId)
           .execute()
+        
+        try await Supabase.shared
+          .from("event_attendees")
+          .insert(eventAttendee)
+          .eq("profile_id", value: currentProfileId)
+          .execute()
+        
       } catch {
         logger.error("\(error.localizedDescription)")
       }

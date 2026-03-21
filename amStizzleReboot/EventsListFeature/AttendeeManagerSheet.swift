@@ -78,7 +78,7 @@ import Supabase
   
   #warning("deleting eventAttendees is not working.")
   func addOrRemoveAsAttendee(for profile: Profile) {
-    if eventAttendees.contains(where: { $0.profileID == profile.id }) {
+    if eventAttendees.contains(where: { $0.profileId == profile.id }) {
       logger.info("%%% user is already registered for the event. Trying to delete attendee.")
       Task {
         do {
@@ -104,12 +104,12 @@ import Supabase
       Task {
         do {
           logger.info("trying to insert new eventAttendee")
-          let eventAttendee = EventAttendee(id: UUID(), createdAt: Date.now, updatedAt: Date.now, eventId: event.id, profileID: profile.id, attendanceStatus: 0)
+          let eventAttendee = EventAttendee(id: UUID(), createdAt: Date.now, updatedAt: Date.now, eventId: event.id, profileId: profile.id, attendanceStatus: 0)
           
           try await Supabase.shared
             .from("event_attendees")
             .insert(eventAttendee)
-            .eq("profile_id", value: eventAttendee.profileID)
+            .eq("profile_id", value: eventAttendee.profileId)
             .eq("event_id", value: eventAttendee.eventId )
             .execute()
         } catch {
@@ -251,7 +251,7 @@ struct AttendeeManagerSheet: View {
             Button {
               model.addOrRemoveAsAttendee(for: profile)
             } label: {
-              Image(systemName: model.eventAttendees.contains(where: { $0.profileID == profile.id }) ? "checkmark" : "plus")
+              Image(systemName: model.eventAttendees.contains(where: { $0.profileId == profile.id }) ? "checkmark" : "plus")
             }
           }
         }
