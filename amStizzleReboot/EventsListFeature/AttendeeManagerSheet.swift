@@ -24,9 +24,9 @@ import Supabase
 //  var currentProfile: Profile
   
   let event: Event
-//  var isNewUserAlertPresented = false
-//  var newUserFirstName = ""
-//  var newUserLastName = ""
+  var isNewUserAlertPresented = false
+  var newUserUsername = ""
+  var newUserEmail = ""
   var sortForAttendance = false {
     didSet {
       Task { await reloadUsersData() }
@@ -41,11 +41,11 @@ import Supabase
   
   
   
-//  func addUserButtonTapped() {
-//    newUserFirstName = ""
-//    newUserLastName = ""
-//    isNewUserAlertPresented = true
-//  }
+  func addUserButtonTapped() {
+    newUserUsername = ""
+    newUserEmail = ""
+    isNewUserAlertPresented = true
+  }
   
   func delete(at offset: IndexSet) async {
       let oldProfiles = allProfiles
@@ -126,15 +126,20 @@ import Supabase
 //    }
   }
   
-  func saveNewUserButtonTapped() {
-//    withErrorReporting {
-//      try database.write { db in
-//        try User.insert { User.Draft(firstName: newUserFirstName, lastName: newUserLastName)
-//        }
-//        .execute(db)
-//      }
-//    }
-//    logger.info(">>>>> new User inserted")
+  func sendInvitationButtonTapped() {
+    Task {
+      do {
+        let user = try await Supabase.shared.auth.admin.inviteUserByEmail(newUserEmail)
+          
+//          newUserEmail,
+//          data: [:],
+//          redirectTo: URL(string: "https://example.com/welcome")
+//        )
+        logger.info(">>>>> Send invitation to: \(user.email ?? "unknown")")
+      } catch {
+        logger.error("\(error.localizedDescription)")
+      }
+    }
   }
   
 //  func toggleSortingButtonTapped() {
@@ -278,16 +283,19 @@ struct AttendeeManagerSheet: View {
       .toolbar {
         ToolbarItem {
           Button {
-//            model.addUserButtonTapped()
+            model.addUserButtonTapped()
           } label: {
             Image(systemName: "plus")
           }
-//          .alert("New User", isPresented: $model.isNewUserAlertPresented) {
-//            TextField("First name", text: $model.newUserFirstName)
-//            TextField("Last name", text: $model.newUserLastName)
-//            Button("Save") { model.saveNewUserButtonTapped() }
-//            Button("Cancel", role: .cancel) { }
-//          }
+          .alert("New User", isPresented: $model.isNewUserAlertPresented) {
+            TextField("Username", text: $model.newUserUsername)
+              .autocorrectionDisabled()
+            TextField("eMail-Address", text: $model.newUserEmail)
+              .keyboardType(.emailAddress)
+              .textInputAutocapitalization(.never)
+            Button("Send") { model.sendInvitationButtonTapped() }
+            Button("Cancel", role: .cancel) { }
+          }
         }
       }
       .task {

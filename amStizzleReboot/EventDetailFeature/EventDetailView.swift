@@ -42,47 +42,6 @@ import Dependencies
   var invitationDeclinedCount: Int = 0
   var unsureAboutInvitationCount: Int = 0
   
-  //  func currentUser(for event: Event) -> EventAttendee {
-  //    guard let userId = UUID(uuidString: currentUserIDString) else { return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited) }
-  //    (try? database.read { db in
-  //      try EventAttendee.where { $0.eventId.eq(event.id) && $0.userId.eq(UUID(uuidString: currentUserIDString)!) }
-  //        .fetchOne(db)
-  //    })
-  //    ?? return EventAttendee(id: UUID(), eventId: UUID(), userId: UUID(), status: .invited)
-  //  }
-  
-  //  func attendees(for event: Event) -> [EventAttendee] {
-  //    (try? database.read { db in
-  //      try EventAttendee.where { $0.eventId.eq(event.id) }
-  //        .fetchAll(db)
-  //    })
-  //    ?? []
-  //  }
-  //
-  //  func invitationCount(for event: Event) -> Int {
-  //    (try? database.read { db in
-  //      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.invited) }
-  //        .fetchCount(db)
-  //    })
-  //    ?? 0
-  //  }
-  //
-  //  func attendeeCount(for event: Event) -> Int {
-  //    (try? database.read { db in
-  //      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.attending) }
-  //        .fetchCount(db)
-  //    })
-  //    ?? 0
-  //  }
-  //
-  //  func declinedCount(for event: Event) -> Int {
-  //    (try? database.read { db in
-  //      try EventAttendee.where { $0.eventId.eq(event.id) && $0.status.eq(AttandanceStatus.notAttending) }
-  //        .fetchCount(db)
-  //    })
-  //    ?? 0
-  //  }
-  //
   func acceptEventInvitation() async {
     Task {
       do {
@@ -93,7 +52,7 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 1")
-//        await loadAttendanceStatus()
+        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -110,7 +69,7 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 3")
-//        await loadAttendanceStatus()
+        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -118,145 +77,149 @@ import Dependencies
   }
   
   func declineEventInvitation() async {
-    //    Task {
-    do {
-      try await Supabase.shared
-        .from("event_attendees")
-        .update(["attendance_status" : 2])
-        .eq("profile_id", value: currentProfile.id)
-        .eq("event_id", value: event.id)
-        .execute()
-      logger.info("AttendanceStatus set to 2")
-//      await loadAttendanceStatus()
-    } catch {
-      logger.error("\(error.localizedDescription)")
+    Task {
+      do {
+        try await Supabase.shared
+          .from("event_attendees")
+          .update(["attendance_status" : 2])
+          .eq("profile_id", value: currentProfile.id)
+          .eq("event_id", value: event.id)
+          .execute()
+        logger.info("AttendanceStatus set to 2")
+        await loadAttendanceStatus()
+      } catch {
+        logger.error("\(error.localizedDescription)")
+      }
     }
-    //    }
   }
   
   func reloadAttendeeData() async {
-    do {
-      logger.info("Current user: \(self.currentProfile.id)")
-      
-      let eventAttendee: EventAttendee =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select()
-        .eq("profile_id", value: currentProfile.id)
-        .eq("event_id", value: event.id)
-        .single()
-        .execute()
-        .value
-      
-      logger.info("current AttendanceStatus: \(eventAttendee.attendanceStatus?.description ?? "nil")")
-      currentEventAttendee = eventAttendee
-      
-    } catch {
-      logger.error("\(error)")
+    Task {
+      do {
+        logger.info("Current user: \(self.currentProfile.id)")
+        
+        let eventAttendee: EventAttendee =
+        try await Supabase.shared
+          .from("event_attendees")
+          .select()
+          .eq("profile_id", value: currentProfile.id)
+          .eq("event_id", value: event.id)
+          .single()
+          .execute()
+          .value
+        
+        logger.info("current AttendanceStatus: \(eventAttendee.attendanceStatus?.description ?? "nil")")
+        currentEventAttendee = eventAttendee
+        
+      } catch {
+        logger.error("\(error)")
+      }
     }
   }
   
   func loadAttendanceStatus() async {
-    do {
-      let invitationCount: Int? =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select(head: true, count: .exact)
-        .eq("event_id", value: event.id)
-        .eq("attendance_status", value: 0)
-        .execute()
-        .count
+    Task {
+      do {
+        let invitationCount: Int? =
+        try await Supabase.shared
+          .from("event_attendees")
+          .select(head: true, count: .exact)
+          .eq("event_id", value: event.id)
+          .eq("attendance_status", value: 0)
+          .execute()
+          .count
+        
+        logger.info("InvitationCount: \(invitationCount ?? -1)")
+        
+        self.invitationCount = invitationCount ?? -1
+        
+      } catch {
+        logger.error("\(error)")
+      }
       
-      logger.info("InvitationCount: \(invitationCount ?? -1)")
+      do {
+        let invitationAcceptedCount: Int? =
+        try await Supabase.shared
+          .from("event_attendees")
+          .select(head: true, count: .exact)
+          .eq("event_id", value: event.id)
+          .eq("attendance_status", value: 1)
+          .execute()
+          .count
+        
+        logger.info("invitationAcceptedCount: \(invitationAcceptedCount ?? -1)")
+        
+        self.invitationAcceptedCount = invitationAcceptedCount ?? -1
+        
+      } catch {
+        logger.error("\(error)")
+      }
       
-      self.invitationCount = invitationCount ?? -1
+      do {
+        let invitationDeclinedCount: Int? =
+        try await Supabase.shared
+          .from("event_attendees")
+          .select(head: true, count: .exact)
+          .eq("event_id", value: event.id)
+          .eq("attendance_status", value: 2)
+          .execute()
+          .count
+        
+        logger.info("invitationDeclinedCount: \(invitationDeclinedCount ?? -1)")
+        
+        self.invitationDeclinedCount = invitationDeclinedCount ?? -1
+        
+      } catch {
+        logger.error("\(error)")
+      }
       
-    } catch {
-      logger.error("\(error)")
-    }
-    
-    do {
-      let invitationAcceptedCount: Int? =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select(head: true, count: .exact)
-        .eq("event_id", value: event.id)
-        .eq("attendance_status", value: 1)
-        .execute()
-        .count
-      
-      logger.info("invitationAcceptedCount: \(invitationAcceptedCount ?? -1)")
-      
-      self.invitationAcceptedCount = invitationAcceptedCount ?? -1
-      
-    } catch {
-      logger.error("\(error)")
-    }
-    
-    do {
-      let invitationDeclinedCount: Int? =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select(head: true, count: .exact)
-        .eq("event_id", value: event.id)
-        .eq("attendance_status", value: 2)
-        .execute()
-        .count
-      
-      logger.info("invitationDeclinedCount: \(invitationDeclinedCount ?? -1)")
-      
-      self.invitationDeclinedCount = invitationDeclinedCount ?? -1
-      
-    } catch {
-      logger.error("\(error)")
-    }
-    
-    do {
-      let unsureAboutInvitationCount: Int? =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select(head: true, count: .exact)
-        .eq("event_id", value: event.id)
-        .eq("attendance_status", value: 3)
-        .execute()
-        .count
-      
-      logger.info("unsureAboutInvitationCount: \(unsureAboutInvitationCount ?? -1)")
-      
-      self.unsureAboutInvitationCount = unsureAboutInvitationCount ?? -1
-      
-    } catch {
-      logger.error("\(error)")
-    }
-}
-  
-  func reloadCurrentUserData() async {
-    do {
-      let currentUser = try await Supabase.shared.auth.session.user
-      
-      logger.info("Current user: \(currentUser.id)")
-      
-      let profile: Profile =
-      try await Supabase.shared
-        .from("profiles")
-        .select()
-        .eq("id", value: currentUser.id)
-        .single()
-        .execute()
-        .value
-      
-      currentProfile = profile
-      
-    } catch {
-      logger.error("\(error)")
+      do {
+        let unsureAboutInvitationCount: Int? =
+        try await Supabase.shared
+          .from("event_attendees")
+          .select(head: true, count: .exact)
+          .eq("event_id", value: event.id)
+          .eq("attendance_status", value: 3)
+          .execute()
+          .count
+        
+        logger.info("unsureAboutInvitationCount: \(unsureAboutInvitationCount ?? -1)")
+        
+        self.unsureAboutInvitationCount = unsureAboutInvitationCount ?? -1
+        
+      } catch {
+        logger.error("\(error)")
+      }
+      //
     }
   }
+    func reloadCurrentUserData() async {
+      do {
+        let currentUser = try await Supabase.shared.auth.session.user
+        
+        logger.info("Current user: \(currentUser.id)")
+        
+        let profile: Profile =
+        try await Supabase.shared
+          .from("profiles")
+          .select()
+          .eq("id", value: currentUser.id)
+          .single()
+          .execute()
+          .value
+        
+        currentProfile = profile
+        
+      } catch {
+        logger.error("\(error)")
+      }
+    }
   
   //
   func loadTask() async {
+    await loadAttendanceStatus()
     await reloadAttendeeData()
     await reloadCurrentUserData()
-    await loadAttendanceStatus()
   }
 }
 
@@ -268,11 +231,9 @@ struct EventDetailView: View {
   
   var body: some View {
     VStack {
-      //      Form {
       HStack {
         Text("From: ")
         Spacer()
-        //          Text(model.event.startDate.formatted(date: .abbreviated, time: .shortened))
         Text(model.event.startDate!.formatted(date: .abbreviated, time: .shortened))
       }
       HStack {
@@ -292,7 +253,6 @@ struct EventDetailView: View {
         Text(model.currentEventAttendee.attendanceStatus?.description ?? "Unknown")
         //          .font(.caption2)
       }
-      
       
       HStack {
         NavigationLink("Manage Attendees", destination: AttendeeManagerSheet(event: model.event))
@@ -326,10 +286,10 @@ struct EventDetailView: View {
       HStack {
         if model.currentEventAttendee.attendanceStatus != 2 {
           Button {
+            model.logger.info("AttendanceStatus is not 2")
             Task {
               await model.declineEventInvitation()
               await model.loadTask()
-              //                reload Attendance_Counts
             }
           } label: {
             ZStack {
@@ -342,10 +302,10 @@ struct EventDetailView: View {
         
         if model.currentEventAttendee.attendanceStatus != 3 {
           Button {
+            model.logger.info("AttendanceStatus is not 3")
             Task {
               await model.unsureEventInvitation()
               await model.loadTask()
-              //                reload Attendance_Counts
             }
           } label: {
             ZStack {
@@ -359,6 +319,7 @@ struct EventDetailView: View {
         
         if model.currentEventAttendee.attendanceStatus != 1 {
           Button {
+//            model.logger.info("AttendanceStatus is not 1")
             Task {
               await model.acceptEventInvitation()
               await model.loadTask()
