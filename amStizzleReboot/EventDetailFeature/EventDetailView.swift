@@ -52,7 +52,6 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 1")
-        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -69,7 +68,6 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 3")
-        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -86,7 +84,6 @@ import Dependencies
           .eq("event_id", value: event.id)
           .execute()
         logger.info("AttendanceStatus set to 2")
-        await loadAttendanceStatus()
       } catch {
         logger.error("\(error.localizedDescription)")
       }

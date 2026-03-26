@@ -14,7 +14,11 @@ struct EventsListView: View {
   
   @State var avatarImage: AvatarImage?
   @State private var userEvents: [Event] = []
+  @State private var invitedEvents: [Event] = []
+
+#if DEBUG
   @State private var allEvents: [Event] = []
+#endif
   
   @State var isNewEventSheetPresented = false
   
@@ -58,17 +62,33 @@ struct EventsListView: View {
                 }
               }
             }
-            //          .onDelete { offsets in
-            //            withErrorReporting {
-            //              try database.write { db in
-            //                try Event.find(offsets.map { eventRows[$0].event.id })
-            //                  .delete()
-            //                  .execute(db)
-            //              }
-            //            }
-            //            loadRows()
-            //          }
+            .onDelete { offsets in
+              deleteUserEvents(at: offsets)
+            }
           }
+          
+          Section("Invited Events") {
+            ForEach(invitedEvents, id: \.id) { event in
+              NavigationLink {
+                EventDetailView(event: event)
+              } label: {
+                VStack(alignment: .leading) {
+                  Text(event.title ?? "")
+                    .font(.headline)
+                  HStack {
+                    Text(event.startDate!.formatted(date: .abbreviated, time: .omitted))
+                    
+                    let duration = DateInterval(start: event.startDate ?? Date.now, end: event.endDate ?? Date.now + 60)
+                    Text(duration)
+                  }
+                  Text(event.id.uuidString)
+                    .font(.caption2)
+                }
+              }
+            }
+          }
+         
+          #if DEBUG
           Section("All Events") {
             ForEach(allEvents, id: \.id) { event in
               VStack(alignment: .leading) {
@@ -84,17 +104,8 @@ struct EventsListView: View {
                   .font(.caption2)
               }
             }
-//                    .onDelete { offsets in
-//                      withErrorReporting {
-//                        try database.write { db in
-//                          try Event.find(offsets.map { allEvents[$0].id })
-//                            .delete()
-//                            .execute(db)
-//                        }
-//                      }
-//                      loadRows()
-//                    }
-                  }
+          }
+          #endif
         }
         .refreshable {
           await loadEvents()
@@ -169,31 +180,8 @@ struct EventsListView: View {
       if let avatarURL = profile.avatarURL, !avatarURL.isEmpty {
         try await downloadImage(path: avatarURL)
       }
-      
-//      let fetchedEvents: [Event] =
-//      try await Supabase.shared
-//        .from("events")
-//        .select()
-//        .eq("creator_id", value: currentUser.id)
-//        .execute()
-//        .value
-//      
-//      logger.info("MyEventsCount: \(fetchedEvents.count)")
-//      
-//      userEvents = fetchedEvents
-//      
-//      let allFetchedEvents: [Event] =
-//      try await Supabase.shared
-//        .from("events")
-//        .select()
-//        .neq("creator_id", value: currentUser.id)
-//        .execute()
-//        .value
-//      
-//      logger.info("AllEventsCount: \(allFetchedEvents.count)")
-//      
-//      allEvents = allFetchedEvents
       await loadEvents()
+//      await loadInvitedEvents()
       
     } catch {
       logger.error("\(error)")
@@ -202,9 +190,9 @@ struct EventsListView: View {
   
   private func loadEvents() async {
     do {
-    let currentUser = try await Supabase.shared.auth.session.user
-
-      let fetchedEvents: [Event] =
+      let currentUser = try await Supabase.shared.auth.session.user
+      
+      let usersFetchedEvents: [Event] =
       try await Supabase.shared
         .from("events")
         .select()
@@ -212,9 +200,36 @@ struct EventsListView: View {
         .execute()
         .value
       
-      logger.info("MyEventsCount: \(fetchedEvents.count)")
+      logger.info("MyEventsCount: \(usersFetchedEvents.count)")
       
-      userEvents = fetchedEvents
+      userEvents = usersFetchedEvents
+//      await loadInvitedEvents()
+    } catch {
+      logger.error("\(error)")
+    }
+    
+    do {
+      let currentUser = try await Supabase.shared.auth.session.user
+      
+      let fetchedInvitedEvents: [Event] =
+      try await Supabase.shared
+        .from("events")
+        .select("*, event_attendees!inner(*)")
+        .eq("event_attendees.profile_id", value: currentUser.id)
+        .neq("creator_id", value: currentUser.id)
+        .execute()
+        .value
+      
+      logger.info("InvitedEventsCount: \(fetchedInvitedEvents.count)")
+      
+      invitedEvents = fetchedInvitedEvents
+    } catch {
+      logger.error("\(error)")
+    }
+    
+    #if DEBUG
+    do {
+      let currentUser = try await Supabase.shared.auth.session.user
       
       let allFetchedEvents: [Event] =
       try await Supabase.shared
@@ -230,41 +245,36 @@ struct EventsListView: View {
     } catch {
       logger.error("\(error)")
     }
+    #endif
+  }
+  
+  private func deleteUserEvents(at offsets: IndexSet) {
+    let idsToDelete = offsets.map { userEvents[$0].id }
+    Task {
+      do {
+        try await Supabase.shared
+          .from("events")
+          .delete()
+          .in("id", values: idsToDelete)
+          .execute()
+        
+//        await MainActor.run {
+          userEvents.remove(atOffsets: offsets)
+//        }
+      } catch {
+        logger.error("\(error)")
+      }
+    }
+    logger.info("Event with ID \(idsToDelete) deleted")
   }
   
   private func downloadImage(path: String) async throws {
     let data = try await Supabase.shared.storage.from("avatars").download(path: path)
     avatarImage = AvatarImage(data: data)
   }
-  
-//#warning("Doesn't load Users Events after adding a new one.")
-//  private func loadRows() {
-//    withErrorReporting {
-//      try database.read { db in
-//        let invitedEventIds = EventAttendee
-//          .where { $0.userId.eq(currentUserUUID) }
-//          .select { $0.eventId }
-//        
-//        let query = Event
-//          .leftJoin(EventAttendee.all) { event, attendee in
-//            event.id.eq(attendee.eventId)
-//            && attendee.status.eq(AttandanceStatus.attending)
-//          }
-//          .where { event, _ in event.id.in(invitedEventIds) }
-//          .group(by: { event, _ in event.id })
-//          .select { EventRow.Columns(event: $0, attendeeCount: $1.count()) }
-//        
-//        eventRows = try query.fetchAll(db)
-//      }
-//    }
-//  }
 }
 
 #Preview {
-//  let _ = prepareDependencies {
-//    try! $0.bootstrapDatabase()
-//    try! $0.defaultDatabase.seed()
-//  }
   NavigationStack {
     EventsListView()
   }

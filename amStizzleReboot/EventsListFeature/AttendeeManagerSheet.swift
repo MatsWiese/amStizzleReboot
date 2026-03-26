@@ -10,7 +10,6 @@ import SwiftUI
 import Supabase
 
 @Observable class AttendeeManagerModel {
-//  @ObservationIgnored @Dependency(\.defaultDatabase) var database
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerModel")
   
 //  @ObservationIgnored @AppStorage("selectedUserID") var currentUserIDString: String = ""
@@ -251,7 +250,11 @@ struct AttendeeManagerSheet: View {
         }
         ForEach(model.allProfiles, id: \.id) { profile in
           HStack {
-            Text(profile.username ?? "Unknown user")
+            VStack(alignment: .leading) {
+              Text(profile.username ?? "Unknown user")
+              Text(profile.id.uuidString)
+                .font(.caption2)
+            }
             Spacer()
             Button {
               model.addOrRemoveAsAttendee(for: profile)

@@ -56,7 +56,6 @@ struct LogInView: View {
         }
       }
     }
-    
     .padding()
     .onOpenURL(perform: { url in
       Task {

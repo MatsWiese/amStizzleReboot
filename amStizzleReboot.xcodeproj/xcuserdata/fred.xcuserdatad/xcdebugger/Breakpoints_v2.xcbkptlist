@@ -22,14 +22,14 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "198DA824-6364-413E-A7AE-C8061473359E"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "Yes"
             filePath = "amStizzleReboot/LogInView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "73"
-            endingLineNumber = "73"
+            startingLineNumber = "72"
+            endingLineNumber = "72"
             landmarkName = "signInButtonTapped()"
             landmarkType = "7">
             <Actions>
@@ -46,50 +46,6 @@
                   </ActionContent>
                </BreakpointActionProxy>
             </Actions>
-            <Locations>
-               <Location
-                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - 12d4b4a159bde7f2"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "73"
-                  endingLineNumber = "73">
-               </Location>
-               <Location
-                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - f0388349421d8e22"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 () async -&gt; () in amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "73"
-                  endingLineNumber = "73">
-               </Location>
-               <Location
-                  uuid = "198DA824-6364-413E-A7AE-C8061473359E - 76e661257aeef366"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for closure #1 () async -&gt; () in amStizzleReboot.LogInView.signInButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/LogInView.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "73"
-                  endingLineNumber = "73">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -134,8 +90,8 @@
             filePath = "amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "63"
-            endingLineNumber = "63"
+            startingLineNumber = "62"
+            endingLineNumber = "62"
             landmarkName = "delete(at:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -150,13 +106,13 @@
             filePath = "amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "61"
-            endingLineNumber = "61"
+            startingLineNumber = "60"
+            endingLineNumber = "60"
             landmarkName = "delete(at:)"
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 851e3dfb68d595ec"
+                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 851e3dfb68d595cd"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -166,11 +122,11 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
+                  startingLineNumber = "60"
+                  endingLineNumber = "60">
                </Location>
                <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - e60281124e55205c"
+                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - e60281124e55207d"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -180,11 +136,11 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
+                  startingLineNumber = "60"
+                  endingLineNumber = "60">
                </Location>
                <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 34ab724a661bbbe9"
+                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 34ab724a661bbbc8"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -194,26 +150,10 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "61"
-                  endingLineNumber = "61">
+                  startingLineNumber = "60"
+                  endingLineNumber = "60">
                </Location>
             </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "87729D9C-0203-49F5-A624-04B04CA18EC1"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "amStizzleReboot/AccountView/ProfileView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "127"
-            endingLineNumber = "127"
-            landmarkName = "updateProfileButtonTapped()"
-            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -226,13 +166,13 @@
             filePath = "amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "132"
-            endingLineNumber = "132"
+            startingLineNumber = "131"
+            endingLineNumber = "131"
             landmarkName = "sendInvitationButtonTapped()"
             landmarkType = "7">
             <Locations>
                <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - e850b75d5c318e0c"
+                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - e850b75d5c318e6f"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -242,11 +182,11 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "132"
-                  endingLineNumber = "132">
+                  startingLineNumber = "131"
+                  endingLineNumber = "131">
                </Location>
                <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - f7fd32b858e1280e"
+                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - f7fd32b858e1286d"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -256,11 +196,11 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "132"
-                  endingLineNumber = "132">
+                  startingLineNumber = "131"
+                  endingLineNumber = "131">
                </Location>
                <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - c441c1f6f517540b"
+                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - c441c1f6f5175468"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
@@ -270,8 +210,8 @@
                   urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "132"
-                  endingLineNumber = "132">
+                  startingLineNumber = "131"
+                  endingLineNumber = "131">
                </Location>
             </Locations>
          </BreakpointContent>
