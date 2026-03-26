@@ -129,7 +129,7 @@ struct EventsListView: View {
                 ZStack {
                   avatarImage.image
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
                     .clipShape(Circle())
                 }
               } else {
@@ -138,9 +138,6 @@ struct EventsListView: View {
             }
           }
         }
-        //      .task(id: currentUserIDString) {
-        //        loadRows()
-        //      }
         .task {
           await initialLoading()
         }

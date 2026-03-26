@@ -64,19 +64,6 @@ struct LogInView: View {
           NavigationLink("sign up", destination: SignUpView())
         }
         //      }
-#if DEBUG
-        Spacer()
-        Button("fredsapple") {
-          email = "fredsapple@gmail.com"
-          password = "33s3"
-          signInButtonTapped()
-        }
-        Button("stammix") {
-          email = "stammix@gmail.com"
-          password = "vemzoc-putwyr-Sudfy1"
-          signInButtonTapped()
-        }
-#endif
       }
       .padding()
       .onOpenURL(perform: { url in

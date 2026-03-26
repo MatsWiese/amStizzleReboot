@@ -75,7 +75,6 @@ import Supabase
 //    }
 //  }
   
-  #warning("deleting eventAttendees is not working.")
   func addOrRemoveAsAttendee(for profile: Profile) {
     if eventAttendees.contains(where: { $0.profileId == profile.id }) {
       logger.info("%%% user is already registered for the event. Trying to delete attendee.")
@@ -85,6 +84,7 @@ import Supabase
             .from("event_attendees")
             .delete()
             .eq("profile_id", value: profile.id)
+            .eq("event_id", value: event.id)
             .execute()
         } catch {
           logger.error("\(error.localizedDescription)")

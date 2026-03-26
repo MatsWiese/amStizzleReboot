@@ -24,30 +24,45 @@ struct ProfileView: View {
   
   var body: some View {
     NavigationStack {
-      Form {
-        Section {
-          HStack {
-            Group {
+//        Form {
+          ZStack(alignment: .bottomTrailing) {
+//            Circle()
+              
+//            Group {
               if let avatarImage {
-                avatarImage.image.resizable()
-              } else {
-                Color.clear
+                avatarImage.image
+                  .resizable()
+                  .clipShape(Circle())
+                  .frame(width: 150, height: 150)
               }
-            }
-            .scaledToFit()
-            .frame(width: 80, height: 80)
+//                else {
+//                Color.clear
+//                  .frame(width: 80, height: 80)
+//              }
+//            }
+//            .scaledToFit()
             
-            Spacer()
+//            Spacer()
             
             PhotosPicker(selection: $imageSelection, matching: .images) {
-              Image(systemName: "pencil.circle.fill")
-                .symbolRenderingMode(.multicolor)
-                .font(.system(size: 30))
-                .foregroundColor(.accentColor)
+              if let avatarImage {
+                Image(systemName: "pencil.circle.fill")
+                  .symbolRenderingMode(.multicolor)
+                  .font(.system(size: 30))
+                  .foregroundColor(.accentColor)
+              } else {
+                HStack {
+                  Image(systemName: "pencil.circle.fill")
+                    .symbolRenderingMode(.multicolor)
+                    .font(.system(size: 30))
+                    .foregroundColor(.accentColor)
+                  Text("Add profile picture")
+                }
             }
           }
         }
           
+      Form {
           Section {
             TextField("First name", text: $firstName)
             TextField("Last name", text: $lastName)
@@ -57,24 +72,30 @@ struct ProfileView: View {
           }
           .textContentType(.name)
           
-          Section {
-            Button("Update profile") {
-              updateProfileButtonTapped()
-            }
-            .bold()
-            
-            if isLoading {
-              ProgressView()
-            }
-          }
+//          Section {
+//            Button("Update profile") {
+//              updateProfileButtonTapped()
+//            }
+//            .bold()
+//            
+//            if isLoading {
+//              ProgressView()
+//            }
+//          }
         }
+      .padding(.top)
       .navigationTitle("Profile")
       .toolbar(content: {
-        ToolbarItem {
-          Button("Sign out", role: .destructive) {
+        ToolbarItem(placement: .topBarLeading) {
+          Button("sign out", role: .destructive) {
             Task {
               try? await Supabase.shared.auth.signOut()
             }
+          }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("save") {
+            updateProfileButtonTapped()
           }
         }
       })
@@ -178,7 +199,7 @@ struct ProfileView: View {
           data: data,
           options: FileOptions(contentType: "image/jpeg")
         )
-
+      logger.info("uploaded image to storage")
       return filePath
     }
 }
