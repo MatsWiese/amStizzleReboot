@@ -17,55 +17,78 @@ struct LogInView: View {
   @State var result: Result<Void, Error>?
   
   var body: some View {
-    VStack {
-      Text("Please log into your account.")
-      TextField("eMail", text: $email)
-        .textContentType(.emailAddress)
-        .textInputAutocapitalization(.never)
-        .autocorrectionDisabled()
-        .textFieldStyle(.roundedBorder)
-      SecureField("Password", text: $password)
-        .textFieldStyle(.roundedBorder)
-        .onSubmit {
-          signInButtonTapped()
+    NavigationStack {
+      VStack {
+        Spacer()
+        Text("Please log into your account.")
+        TextField("eMail", text: $email)
+          .textContentType(.emailAddress)
+          .textInputAutocapitalization(.never)
+          .autocorrectionDisabled()
+          .textFieldStyle(.roundedBorder)
+        SecureField("Password", text: $password)
+          .textFieldStyle(.roundedBorder)
+          .onSubmit {
+            signInButtonTapped()
+          }
+        
+        if isLoading {
+          ProgressView()
+        } else {
+          Button {
+            signInButtonTapped()
+          } label: {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8)
+                .fill(((email.isEmpty || password.isEmpty) ? Color.gray.opacity(0.4) : Color.cyan))
+              //              .stroke(style: StrokeStyle(lineWidth: 1))
+              Text("log in")
+                .fontWeight(.bold)
+                .foregroundStyle(.black)
+            }
+            .frame(height: 50)
+          }
+          .disabled(email.isEmpty || password.isEmpty)
         }
         
-      if isLoading {
-        ProgressView()
-      } else {
-        Button {
+        if let result {
+          Section {
+            if case let .failure(failure) = result {
+              Text(failure.localizedDescription).foregroundStyle(.red)
+            }
+          }
+        }
+        //      Button("sign up") {
+        HStack(spacing: 3) {
+          Text("or")
+          NavigationLink("sign up", destination: SignUpView())
+        }
+        //      }
+#if DEBUG
+        Spacer()
+        Button("fredsapple") {
+          email = "fredsapple@gmail.com"
+          password = "33s3"
           signInButtonTapped()
-        } label: {
-          ZStack {
-            RoundedRectangle(cornerRadius: 8)
-              .fill(.cyan)
-//              .stroke(style: StrokeStyle(lineWidth: 1))
-            Text("Log in")
-              .fontWeight(.bold)
-              .foregroundStyle(.black)
-          }
-          .frame(height: 50)
         }
+        Button("stammix") {
+          email = "stammix@gmail.com"
+          password = "vemzoc-putwyr-Sudfy1"
+          signInButtonTapped()
+        }
+#endif
       }
-      
-      if let result {
-        Section {
-          if case let .failure(failure) = result {
-            Text(failure.localizedDescription).foregroundStyle(.red)
+      .padding()
+      .onOpenURL(perform: { url in
+        Task {
+          do {
+            try await Supabase.shared.auth.session(from: url)
+          } catch {
+            self.result = .failure(error)
           }
         }
-      }
+      })
     }
-    .padding()
-    .onOpenURL(perform: { url in
-      Task {
-        do {
-          try await Supabase.shared.auth.session(from: url)
-        } catch {
-          self.result = .failure(error)
-        }
-      }
-    })
   }
   
   func signInButtonTapped() {
