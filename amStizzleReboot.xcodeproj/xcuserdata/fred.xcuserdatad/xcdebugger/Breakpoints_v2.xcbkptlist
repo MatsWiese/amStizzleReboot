@@ -28,8 +28,8 @@
             filePath = "amStizzleReboot/LogInView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "72"
-            endingLineNumber = "72"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
             landmarkName = "signInButtonTapped()"
             landmarkType = "7">
             <Actions>
