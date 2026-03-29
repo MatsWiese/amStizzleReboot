@@ -56,9 +56,11 @@ struct EventRowView: View {
         
         
         VStack {
-          //        NavigationLink {
-          TitleView
-          
+          NavigationLink {
+           EventDetailView(event: event)
+          } label: {
+            TitleView
+          }
           TimeSection
           //        }
           
