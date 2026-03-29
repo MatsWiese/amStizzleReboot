@@ -12,10 +12,12 @@ import Supabase
 struct EventsListView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventsListView")
   
+  @State var currentUserId: UUID?
+  
   @State var avatarImage: AvatarImage?
   @State private var userEvents: [Event] = []
   @State private var invitedEvents: [Event] = []
-
+  
 #if DEBUG
   @State private var allEvents: [Event] = []
 #endif
@@ -26,140 +28,69 @@ struct EventsListView: View {
   
   var body: some View {
     NavigationStack {
-      VStack {
-        List {
-          Section("My Events") {
-            ForEach(userEvents, id: \.id) { event in
-              NavigationLink {
-                EventDetailView(event: event)
-              } label: {
-                HStack {
-                  VStack(alignment: .leading) {
-                    Text(event.title ?? "")
-                      .font(.headline)
-                    HStack {
-                      Text(event.startDate!.formatted(date: .abbreviated, time: .omitted))
-                      
-                      let duration = DateInterval(start: event.startDate!, end: event.endDate!)
-                      Text(duration)
-                    }
-                    Text(event.id.uuidString)
-                      .font(.caption2)
-                  }
-                  Spacer()
-                  //                HStack {
-                  //                  if row.attendeeCount == 1 {
-                  //                    Image(systemName: "person")
-                  //                  } else if row.attendeeCount == 2 {
-                  //                    Image(systemName: "person.2")
-                  //                  } else if row.attendeeCount == 3 {
-                  //                    Image(systemName: "person.3")
-                  //                  } else if row.attendeeCount > 3 {
-                  //                    Text("\(row.attendeeCount)")
-                  //                    Image(systemName: "person.3")
-                  //                  }
-                  //                }
-                }
-              }
-            }
-            .onDelete { offsets in
-              deleteUserEvents(at: offsets)
-            }
+      ScrollView {
+        if invitedEvents.isEmpty {
+          ContentUnavailableView("Events loading...", systemImage: "arrow.2.circlepath.circle.fill")
+        } else {
+          ForEach(invitedEvents, id: \.id) { event in
+            EventRowView(event: event, currentUserId: currentUserId ?? UUID())
+              .padding()
           }
-          
-          Section("Invited Events") {
-            ForEach(invitedEvents, id: \.id) { event in
-              NavigationLink {
-                EventDetailView(event: event)
-              } label: {
-                VStack(alignment: .leading) {
-                  Text(event.title ?? "")
-                    .font(.headline)
-                  HStack {
-                    Text(event.startDate!.formatted(date: .abbreviated, time: .omitted))
-                    
-                    let duration = DateInterval(start: event.startDate ?? Date.now, end: event.endDate ?? Date.now + 60)
-                    Text(duration)
-                  }
-                  Text(event.id.uuidString)
-                    .font(.caption2)
-                }
-              }
-            }
-          }
-         
-          #if DEBUG
-          Section("All Events") {
-            ForEach(allEvents, id: \.id) { event in
-              VStack(alignment: .leading) {
-                Text(event.title ?? "")
-                  .font(.headline)
-                HStack {
-                  Text(event.startDate!.formatted(date: .abbreviated, time: .omitted))
-                  
-                  let duration = DateInterval(start: event.startDate ?? Date.now, end: event.endDate ?? Date.now + 60)
-                  Text(duration)
-                }
-                Text(event.id.uuidString)
-                  .font(.caption2)
-              }
-            }
-          }
-          #endif
         }
-        .refreshable {
-          await loadEvents()
+//        .onDelete(perform: deleteUserEvents)
+//#warning("Delete doesn't work in ScrollView")
+      }
+      .refreshable {
+        await loadEvents()
+      }
+      .navigationTitle("Events")
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            //              newEventTitle = ""
+            isNewEventSheetPresented = true
+          } label: {
+            Label("Add Event", systemImage: "plus")
+          }
+        }
+        ToolbarItem(placement: .topBarLeading) {
+          Button {
+            showAccountSheet = true
+          } label: {
+            //            Group {
+            if let avatarImage {
+              avatarImage.image
+                .resizable()
+                .clipShape(Circle())
+                .scaledToFill()
+            } else {
+              Image(systemName: "person")
+            }
+          }
+          .buttonStyle(.plain)
         }
       }
-        .navigationTitle("Events")
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Button {
-//              newEventTitle = ""
-              isNewEventSheetPresented = true
-            } label: {
-              Label("Add Event", systemImage: "plus")
-            }
-          }
-          ToolbarItem(placement: .topBarLeading) {
-            Button {
-              showAccountSheet = true
-            } label: {
-              if let avatarImage {
-                ZStack {
-                  avatarImage.image
-                    .resizable()
-                    .scaledToFill()
-                    .clipShape(Circle())
-                }
-              } else {
-                Image(systemName: "person")
-              }
-            }
-          }
+      .task {
+        await initialLoading()
+      }
+      .sheet(isPresented: $isNewEventSheetPresented) {
+        NavigationStack {
+          CreateEventSheet()
         }
-        .task {
-          await initialLoading()
+      }
+      .sheet(isPresented: $showAccountSheet) {
+        NavigationStack {
+          ProfileView()
         }
-        .sheet(isPresented: $isNewEventSheetPresented) {
-          NavigationStack {
-            CreateEventSheet()
-          }
-        }
-        .sheet(isPresented: $showAccountSheet) {
-          NavigationStack {
-            ProfileView()
-          }
-        }
-      
+      }
     }
   }
   
   func initialLoading() async {
     do {
       let currentUser = try await Supabase.shared.auth.session.user
-      
       logger.info("Current user: \(currentUser.id)")
+      currentUserId = currentUser.id
       
       let profile: Profile =
       try await Supabase.shared
@@ -178,7 +109,7 @@ struct EventsListView: View {
         try await downloadImage(path: avatarURL)
       }
       await loadEvents()
-//      await loadInvitedEvents()
+      //      await loadInvitedEvents()
       
     } catch {
       logger.error("\(error)")
@@ -213,7 +144,8 @@ struct EventsListView: View {
         .from("events")
         .select("*, event_attendees!inner(*)")
         .eq("event_attendees.profile_id", value: currentUser.id)
-        .neq("creator_id", value: currentUser.id)
+        .order("start_date", ascending: true)
+//        .neq("creator_id", value: currentUser.id)
         .execute()
         .value
       
@@ -223,28 +155,27 @@ struct EventsListView: View {
     } catch {
       logger.error("\(error)")
     }
-    
-    #if DEBUG
-    do {
-      let currentUser = try await Supabase.shared.auth.session.user
-      
-      let allFetchedEvents: [Event] =
-      try await Supabase.shared
-        .from("events")
-        .select()
-        .neq("creator_id", value: currentUser.id)
-        .execute()
-        .value
-      
-      logger.info("AllEventsCount: \(allFetchedEvents.count)")
-      
-      allEvents = allFetchedEvents
-    } catch {
-      logger.error("\(error)")
-    }
-    #endif
   }
   
+//  private func deleteUserEvents(event: Event) {
+//    Task {
+//          do {
+//            try await Supabase.shared
+//              .from("events")
+//              .delete()
+//              .eq("event_id", value: event.id)
+//              .eq("creator_id", value: currentUserId)
+//              .execute()
+//    
+//            //        await MainActor.run {
+////            userEvents.remove(atOffsets: offsets)
+//            //        }
+//          } catch {
+//            logger.error("\(error)")
+//          }
+//        }
+//    logger.info("Event with ID \(event.id) deleted")
+//  }
   private func deleteUserEvents(at offsets: IndexSet) {
     let idsToDelete = offsets.map { userEvents[$0].id }
     Task {
@@ -255,9 +186,9 @@ struct EventsListView: View {
           .in("id", values: idsToDelete)
           .execute()
         
-//        await MainActor.run {
-          userEvents.remove(atOffsets: offsets)
-//        }
+        //        await MainActor.run {
+        userEvents.remove(atOffsets: offsets)
+        //        }
       } catch {
         logger.error("\(error)")
       }
@@ -273,6 +204,6 @@ struct EventsListView: View {
 
 #Preview {
   NavigationStack {
-    EventsListView()
+    EventsListView(currentUserId: UUID())
   }
 }
