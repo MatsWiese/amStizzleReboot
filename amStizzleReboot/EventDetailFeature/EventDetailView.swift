@@ -30,11 +30,11 @@ import Dependencies
   
   var currentEventAttendee = EventAttendee(
     id: UUID(),
-    createdAt: Date.now,
-    updatedAt: Date.now,
     eventId: UUID(),
     profileId: UUID(),
-    attendanceStatus: 0
+    attendanceStatus: 0,
+    createdAt: Date.now,
+    updatedAt: Date.now,
   )
   
   var invitationCount: Int = 0

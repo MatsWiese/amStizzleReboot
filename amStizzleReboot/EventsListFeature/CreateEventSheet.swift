@@ -34,7 +34,7 @@ import Supabase
       do {
         event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
         
-        let eventAttendee = EventAttendee(id: UUID(), createdAt: Date.now, updatedAt: Date.now, eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0)
+        let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
         
         try await Supabase.shared
           .from("events")
