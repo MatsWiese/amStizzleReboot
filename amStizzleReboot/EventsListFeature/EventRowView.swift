@@ -39,7 +39,7 @@ import SwiftUI
 struct EventRowView: View {
   @Environment(\.colorScheme) var colorScheme
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
-  //  @State var model: EventDetailModel
+  //  @State var model: EventRowModel
   //  let attendingUserNames: [String]
   @State var currentEventAttendee: EventAttendee? /*= EventAttendee(id: UUID(), eventId: UUID(), profileId: UUID(), attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)*/
   let event: Event
@@ -55,7 +55,6 @@ struct EventRowView: View {
           .fill(colorScheme == .dark ? Color.black.opacity(0.9) : Color.white.opacity(0.5))
           .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
           .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-        
         
         VStack {
           NavigationLink {
@@ -104,15 +103,11 @@ struct EventRowView: View {
         .foregroundStyle(Color.primary)
         .font(.largeTitle)
         .fontWeight(.bold)
-//        .border(.cyan)
         .padding()
-//        .padding(.leading)
-//        .padding(.bottom, 2)
         .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
         .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
     }
     .frame(height: 70)
-//    .border(.orange)
   }
   
   var TimeSection: some View {
@@ -125,7 +120,6 @@ struct EventRowView: View {
         Text(event.startDate?
           .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
         .minimumScaleFactor(0.5)
-        //          .fontWidth(.condensed)
         .font(.title)
         .fontWeight(.bold)
         .fontDesign(.rounded)
@@ -145,11 +139,8 @@ struct EventRowView: View {
             Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
           }
           .minimumScaleFactor(0.8)
-          //                  .frame(maxWidth: .infinity)
-          //          .border(.orange, width: 1)
           .fontWeight(.black)
         }
-        //        .border(.purple, width: 1)
         .font(.title2)
       }
       .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
@@ -180,6 +171,7 @@ struct EventRowView: View {
       logger.error("\(error)")
     }
   }
+  #warning("join Profiles to get usernames")
   func loadEventAttendees() async {
     do {
       let fetchedEventAttendees: [EventAttendee] =
@@ -201,7 +193,6 @@ struct EventRowView: View {
     
   }
 }
-
 
 struct ButtonView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "ButtonView")
@@ -242,9 +233,6 @@ struct ButtonView: View {
             logger.error("\(error.localizedDescription)")
           }
         }
-        //        event.attendees.append(user.id)
-        //        print("attending: \(event.attendees)")
-        //        return /*remove after commenting in*/
         
       case .refuseButton:
         Task {
@@ -260,9 +248,6 @@ struct ButtonView: View {
             logger.error("\(error.localizedDescription)")
           }
         }
-        //        event.notParticipating.append(user.id)
-        //        print("notParticipating: \(event.notParticipating)")
-        return /*remove after commenting in*/
       }
     } label: {
       ZStack {
