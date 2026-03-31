@@ -1,4 +1,3 @@
-
 //
 //  ContentView.swift
 //  EventRowViewTest
@@ -41,12 +40,11 @@ struct EventRowView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
   //  @State var model: EventRowModel
   //  let attendingUserNames: [String]
-  @State var currentEventAttendee: EventAttendee? /*= EventAttendee(id: UUID(), eventId: UUID(), profileId: UUID(), attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)*/
+  @State var currentEventAttendee: EventAttendee?
   let event: Event
   let currentUserId: UUID
   @State var eventAttendees: [EventAttendee] = []
   //  let groupColor: Color
-  //  let onDetailTapped: () -> Void
   
   var body: some View {
     VStack {
@@ -66,10 +64,7 @@ struct EventRowView: View {
           TimeSection
           
           HStack {
-            if currentEventAttendee?.attendanceStatus == 0 {
-              ButtonView(event: event, userId: currentUserId, buttonType: .refuseButton, image: "xmark", text: "nope, i'm out")
-              ButtonView(event: event, userId: currentUserId, buttonType: .attendButton, image: "checkmark", text: "am Stizzle!")
-            } else if currentEventAttendee?.attendanceStatus == 1 {
+            if currentEventAttendee?.attendanceStatus == 1 {
               NavigationLink {
                 EventDetailView(event: event)
               } label: {
@@ -81,8 +76,12 @@ struct EventRowView: View {
               } label: {
                 AttendanceView(currentEventAttendee: currentEventAttendee!, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
               }
+            } else {
+              ButtonView(event: event, userId: currentUserId, buttonType: .refuseButton, image: "xmark", text: "nope, i'm out")
+              ButtonView(event: event, userId: currentUserId, buttonType: .attendButton, image: "checkmark", text: "am Stizzle!")
             }
           }
+//          .frame(minHeight: 90)
         }
         .padding()
       }
@@ -171,7 +170,7 @@ struct EventRowView: View {
       logger.error("\(error)")
     }
   }
-  #warning("join Profiles to get usernames")
+#warning("join Profiles to get usernames")
   func loadEventAttendees() async {
     do {
       let fetchedEventAttendees: [EventAttendee] =
@@ -190,7 +189,6 @@ struct EventRowView: View {
     } catch {
       logger.error("\(error)")
     }
-    
   }
 }
 
@@ -267,7 +265,6 @@ struct ButtonView: View {
             .foregroundStyle(Color.white)
         }
       }
-      .frame(minHeight: 90)
       .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
       .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
     }
@@ -313,6 +310,7 @@ struct AttendanceView: View {
           .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
         HStack(spacing: -6) {
           ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
+#warning("implement circles with usernames after joined fetch")
             //            ZStack {
             //              Circle()
             //                .fill(Color.gray)
@@ -334,6 +332,7 @@ struct AttendanceView: View {
           }
           Spacer()
           ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+#warning("implement circles with usernames after joined fetch")
             //            ZStack {
             //              Circle()
             //                .fill(Color.gray)
@@ -363,7 +362,7 @@ struct AttendanceView: View {
 #Preview {
   NavigationStack {
     let currentSampleUserId = UUID()
-    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: currentSampleUserId, attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now)
+    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: currentSampleUserId, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
     let event = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
     let sampleEventAttendees = [
       currentSampleAttendee,
