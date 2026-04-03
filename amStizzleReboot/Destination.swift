@@ -8,16 +8,18 @@
 import SwiftUI
 
 enum Destination {
-//  case createNewEvent
+  case createNewEvent
   case attendeeManager(event: Event)
+  case eventDetail(event: Event)
   
-  
-  var view: some View {
+  @ViewBuilder var view: some View {
     switch self {
-      //    case .createNewEvent:
-      //      CreateEventSheet()
+    case .createNewEvent:
+      CreateEventView()
     case .attendeeManager(event: let event):
-      AttendeeManagerSheet(event: event)
+      AttendeeManagerView(event: event)
+    case .eventDetail(event: let event):
+      EventDetailView(event: event)
     }
   }
 }
@@ -27,8 +29,12 @@ extension Destination: Hashable, Equatable {
     switch (lhs, rhs) {
     case let (.attendeeManager(lhsEvent), .attendeeManager(rhsEvent)):
       return lhsEvent.id == rhsEvent.id
-      //    case (.createNewEvent(), .createNewEvent()):
-      //      return .createNewEvent()
+    case let (.eventDetail(lhsEvent), .eventDetail(rhsEvent)):
+      return lhsEvent.id == rhsEvent.id
+    case (.createNewEvent, .createNewEvent):
+      return true
+    default:
+      return false
     }
   }
   

@@ -37,6 +37,7 @@ import SwiftUI
 
 struct EventRowView: View {
   @Environment(\.colorScheme) var colorScheme
+  @Environment(AppRouter.self) private var router
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
   //  @State var model: EventRowModel
   //  let attendingUserNames: [String]
@@ -55,8 +56,9 @@ struct EventRowView: View {
           .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
         
         VStack {
-          NavigationLink {
-            EventDetailView(event: event)
+          Button {
+//            EventDetailView(event: event)
+            router.push(.eventDetail(event: event))
           } label: {
             TitleView
           }
@@ -64,15 +66,15 @@ struct EventRowView: View {
           TimeSection
           
           HStack {
-            if currentEventAttendee?.attendanceStatus == 1 {
-              NavigationLink {
-                EventDetailView(event: event)
+            if model.eventsAttendanceStatus == 1 {
+              Button {
+                router.push(.eventDetail(event: event))
               } label: {
                 AttendanceView(currentEventAttendee: currentEventAttendee!,eventAttendees: eventAttendees, invitationState: .inviteAccepted, image: "checkmark.circle.fill", text: "amStizzle!")
               }
-            } else if currentEventAttendee?.attendanceStatus == 2 {
-              NavigationLink {
-                EventDetailView(event: event)
+            } else if model.eventsAttendanceStatus == 2 {
+              Button {
+                router.push(.eventDetail(event: event))
               } label: {
                 AttendanceView(currentEventAttendee: currentEventAttendee!, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
               }
@@ -375,4 +377,5 @@ struct AttendanceView: View {
     ]
     EventRowView(currentEventAttendee: currentSampleAttendee, event: event, currentUserId: currentSampleUserId, eventAttendees: sampleEventAttendees)
   }
+  .environment(AppRouter())
 }

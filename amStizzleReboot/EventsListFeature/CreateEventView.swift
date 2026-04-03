@@ -74,18 +74,17 @@ import Supabase
 //  }
 }
 
-struct CreateEventSheet: View {
+struct CreateEventView: View {
   @Environment(\.dismiss) var dismiss
-  
+  @Environment(AppRouter.self) private var router
   @State var model = CreateEventModel()
-  @State private var path: [Destination] = []
   
 //  init() {
 //    _model = State(wrappedValue: CreateEventModel())
 //  }
   
   var body: some View {
-    NavigationStack(path: $path) {
+//    NavigationStack {
       Form {
         Section {
           TextField("Event title", text: $model.newEventTitle)
@@ -107,7 +106,7 @@ struct CreateEventSheet: View {
 //                } )
         Button {
 //          model.saveEventButtonTapped()
-          path.append(.attendeeManager(event: model.event))
+          router.push(.attendeeManager(event: model.event))
         } label: {
           HStack {
             Text("Manage attendees")
@@ -118,7 +117,7 @@ struct CreateEventSheet: View {
         .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
       .navigationDestination(for: Destination.self, destination: \.view)
-    }
+//    }
     .navigationTitle("New Event")
     .toolbar {
       ToolbarItem(placement: .cancellationAction) {
@@ -166,6 +165,9 @@ struct CreateEventSheet: View {
   }
 }
 
-//#Preview {
-//  CreateEventSheet()
-//}
+#Preview {
+  NavigationStack {
+    CreateEventView()
+  }
+  .environment(AppRouter())
+}

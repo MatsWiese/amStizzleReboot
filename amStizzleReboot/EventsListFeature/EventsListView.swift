@@ -11,6 +11,7 @@ import Supabase
 
 struct EventsListView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventsListView")
+  @State var router = AppRouter()
   
   @State var currentUserId: UUID?
   
@@ -28,6 +29,7 @@ struct EventsListView: View {
   
   var body: some View {
     NavigationStack {
+    NavigationStack(path: $router.path) {
       ScrollView {
         if invitedEvents.isEmpty {
           ContentUnavailableView("Events loading...", systemImage: "arrow.2.circlepath.circle.fill")
@@ -48,7 +50,8 @@ struct EventsListView: View {
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             //              newEventTitle = ""
-            isNewEventSheetPresented = true
+//            isNewEventSheetPresented = true
+            router.push(.createNewEvent)
           } label: {
             Label("Add Event", systemImage: "plus")
           }
@@ -84,6 +87,7 @@ struct EventsListView: View {
         }
       }
     }
+    .environment(router)
   }
   
   func initialLoading() async {
@@ -206,4 +210,5 @@ struct EventsListView: View {
   NavigationStack {
     EventsListView(currentUserId: UUID())
   }
+  .environment(AppRouter())
 }

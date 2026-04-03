@@ -220,7 +220,7 @@ import Supabase
   }
 }
 
-struct AttendeeManagerSheet: View {
+struct AttendeeManagerView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerSheet")
   
   @State var model: AttendeeManagerModel
@@ -290,7 +290,7 @@ struct AttendeeManagerSheet: View {
           } label: {
             Image(systemName: "plus")
           }
-          .alert("New User", isPresented: $model.isNewUserAlertPresented) {
+          .alert("Invite a new user to \(model.event.title ?? "your gang")", isPresented: $model.isNewUserAlertPresented) {
             TextField("Username", text: $model.newUserUsername)
               .autocorrectionDisabled()
             TextField("eMail-Address", text: $model.newUserEmail)
@@ -307,15 +307,9 @@ struct AttendeeManagerSheet: View {
   }
 }
 
-//#Preview {
-//  let event = prepareDependencies {
-//    try! $0.bootstrapDatabase()
-//    try! $0.defaultDatabase.seed()
-//    return try! $0.defaultDatabase.read { db in
-//      try Event.fetchOne(db)!
-//    }
-//  }
-//  NavigationStack {
-//    AttendeeManagerSheet(event: event)
-//  }
-//}
+#Preview {
+  let event = Event(id: UUID(), title: "PreviewEvent", details: "", startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID())
+  NavigationStack {
+      AttendeeManagerView(event: event)
+    }
+}

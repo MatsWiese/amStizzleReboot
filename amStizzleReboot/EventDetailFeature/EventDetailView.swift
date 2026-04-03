@@ -221,6 +221,7 @@ import Dependencies
 }
 
 struct EventDetailView: View {
+  @Environment(AppRouter.self) private var router
   @State var model: EventDetailModel
   init(event: Event) {
     _model = State(wrappedValue: EventDetailModel(event: event))
@@ -347,4 +348,5 @@ struct EventDetailView: View {
     EventDetailView(event: event)
       .padding()
   }
+  .environment(AppRouter())
 }
