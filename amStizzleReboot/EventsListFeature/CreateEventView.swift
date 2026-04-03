@@ -30,12 +30,12 @@ import Supabase
   var eventEnd = Date() + 3600
   
   func saveEventButtonTapped() {
+    event = Event(id: self.event.id, title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
+    
+    let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+    
     Task {
       do {
-        event = Event(id: UUID(), title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
-        
-        let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
-        
         try await Supabase.shared
           .from("events")
           .insert(event)
@@ -47,7 +47,22 @@ import Supabase
           .insert(eventAttendee)
           .eq("profile_id", value: currentProfileId)
           .execute()
+      } catch {
+        logger.error("\(error.localizedDescription)")
+      }
+    }
+  }
+  
+  func cancelButtonTapped() {
+    Task {
+      do {
+        try await Supabase.shared
+          .from("events")
+          .delete()
+          .eq("id", value: self.event.id)
+          .execute()
         
+        logger.info("Event \(self.event.title ?? "N/A") deleted")
       } catch {
         logger.error("\(error.localizedDescription)")
       }
@@ -96,16 +111,8 @@ struct CreateEventView: View {
           DatePicker("Event ends", selection: $model.eventEnd, displayedComponents: [.date, .hourAndMinute])
         }
         
-#warning("Navlink upserts event. not best solution I guess")
-//                NavigationLink(destination: AttendeeManagerSheet(event: model.event)) {
-//                  Text("Manage Attendees")
-//                }
-        //        .simultaneousGesture(TapGesture().onEnded {
-        //          model.saveEventButtonTapped()
-        //          print("saved saved saved")
-//                } )
         Button {
-//          model.saveEventButtonTapped()
+          model.saveEventButtonTapped()
           router.push(.attendeeManager(event: model.event))
         } label: {
           HStack {
@@ -117,23 +124,28 @@ struct CreateEventView: View {
         .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
       }
       .navigationDestination(for: Destination.self, destination: \.view)
-//    }
-    .navigationTitle("New Event")
-    .toolbar {
-      ToolbarItem(placement: .cancellationAction) {
-        Button("Cancel") { dismiss() }
-      }
-      ToolbarItem(placement: .confirmationAction) {
-        Button("Save") {
-          model.saveEventButtonTapped()
-          dismiss()
+      //    }
+      .navigationTitle("New Event")
+      .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+          Button("Cancel") {
+            model.cancelButtonTapped()
+            dismiss()
+          }
         }
-        .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Save") {
+            model.saveEventButtonTapped()
+            dismiss()
+          }
+          .disabled(model.newEventTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
       }
-    }
-    .task {
-      await getInitialProfile()
-    }
+      .task {
+        await getInitialProfile()
+      }
+    
+//    .environment(router)
   }
   func getInitialProfile() async {
     do {

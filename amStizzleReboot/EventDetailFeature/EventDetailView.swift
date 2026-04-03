@@ -90,10 +90,32 @@ import Dependencies
     }
   }
   
+  func reloadCurrentUserData() async {
+    do {
+      let currentUser = try await Supabase.shared.auth.session.user
+      
+      logger.info("Current user: \(currentUser.id)")
+      
+      let profile: Profile =
+      try await Supabase.shared
+        .from("profiles")
+        .select()
+        .eq("id", value: currentUser.id)
+        .single()
+        .execute()
+        .value
+      
+      currentProfile = profile
+      
+    } catch {
+      logger.error("\(error)")
+    }
+  }
+  
   func reloadAttendeeData() async {
     Task {
       do {
-        logger.info("Current user: \(self.currentProfile.id)")
+        logger.info("Current profileId: \(self.currentProfile.id)")
         
         let eventAttendee: EventAttendee =
         try await Supabase.shared
@@ -187,36 +209,13 @@ import Dependencies
       } catch {
         logger.error("\(error)")
       }
-      //
     }
   }
-    func reloadCurrentUserData() async {
-      do {
-        let currentUser = try await Supabase.shared.auth.session.user
-        
-        logger.info("Current user: \(currentUser.id)")
-        
-        let profile: Profile =
-        try await Supabase.shared
-          .from("profiles")
-          .select()
-          .eq("id", value: currentUser.id)
-          .single()
-          .execute()
-          .value
-        
-        currentProfile = profile
-        
-      } catch {
-        logger.error("\(error)")
-      }
-    }
   
-  //
   func loadTask() async {
-    await loadAttendanceStatus()
-    await reloadAttendeeData()
     await reloadCurrentUserData()
+    await reloadAttendeeData()
+    await loadAttendanceStatus()
   }
 }
 
@@ -228,116 +227,126 @@ struct EventDetailView: View {
   }
   
   var body: some View {
-    VStack {
-      HStack {
-        Text("From: ")
-        Spacer()
-        Text(model.event.startDate!.formatted(date: .abbreviated, time: .shortened))
-      }
-      HStack {
-        Text("To: ")
-        Spacer()
-        Text(model.event.endDate!.formatted(date: .abbreviated, time: .shortened))
-      }
-      HStack {
-        Text("Creator: ")
-        Spacer()
-        Text(model.currentProfile.username ?? "Anonymous")
-        //          .font(.caption2)
-      }
-      HStack {
-        Text("Attendance Status: ")
-        Spacer()
-        Text(model.currentEventAttendee.attendanceStatus?.description ?? "Unknown")
-        //          .font(.caption2)
-      }
-      
-      HStack {
-        NavigationLink("Manage Attendees", destination: AttendeeManagerSheet(event: model.event))
-        Spacer()
-        Text("Invited: ")
-        Text("\(model.invitationCount)")
-      }
-      HStack {
-        Text("Declined: ")
-        Text("\(model.invitationDeclinedCount)")
-        Spacer()
-        Text("Maybe: ")
-        Text("\(model.unsureAboutInvitationCount)")
-        Spacer()
-        Text("Attendees: ")
-        Text("\(model.invitationAcceptedCount)")
-      }
-      //        }
-      //
-      //        ForEach(model.attendees(for: model.event)) { attendee in
-      //          HStack {
-      //            Text(attendee.userId.uuidString)
-      //            Spacer()
-      //            Text(attendee.status.displayName)
-      //          }
-      //          .font(.caption2)
-      //        }
-      //      }
-      //      .frame(height: 300)
-      
-      HStack {
-        if model.currentEventAttendee.attendanceStatus != 2 {
-          Button {
-            model.logger.info("AttendanceStatus is not 2")
-            Task {
-              await model.declineEventInvitation()
-              await model.loadTask()
-            }
-          } label: {
-            ZStack {
-              RoundedRectangle(cornerRadius: 8)
-                .fill(Color.red)
-              Text("Nope")
-            }
-          }
+      VStack {
+        HStack {
+          Text("From: ")
+          Spacer()
+          Text(model.event.startDate!.formatted(date: .abbreviated, time: .shortened))
+        }
+        HStack {
+          Text("To: ")
+          Spacer()
+          Text(model.event.endDate!.formatted(date: .abbreviated, time: .shortened))
+        }
+        HStack {
+          Text("Creator: ")
+          Spacer()
+          Text(model.currentProfile.username ?? "Anonymous")
+          //          .font(.caption2)
+        }
+        HStack {
+          Text("EventID: ")
+          Spacer()
+          Text(model.event.id.uuidString)
+            .font(.caption2)
+        }
+        HStack {
+          Text("Attendance Status: ")
+          Spacer()
+          Text(model.currentEventAttendee.attendanceStatus?.description ?? "Unknown")
+          //          .font(.caption2)
         }
         
-        if model.currentEventAttendee.attendanceStatus != 3 {
+        HStack {
           Button {
-            model.logger.info("AttendanceStatus is not 3")
-            Task {
-              await model.unsureEventInvitation()
-              await model.loadTask()
-            }
+            router.push(.attendeeManager(event: model.event))
           } label: {
-            ZStack {
-              RoundedRectangle(cornerRadius: 8)
-                .fill(Color.yellow)
-              Text("maybe")
-            }
-            .frame(width: 70)
+            Text("Manage Attendees")
           }
+          Spacer()
+          Text("Invited: ")
+          Text("\(model.invitationCount)")
         }
+        HStack {
+          Text("Declined: ")
+          Text("\(model.invitationDeclinedCount)")
+          Spacer()
+          Text("Maybe: ")
+          Text("\(model.unsureAboutInvitationCount)")
+          Spacer()
+          Text("Attendees: ")
+          Text("\(model.invitationAcceptedCount)")
+        }
+        //        }
+        //
+        //        ForEach(model.attendees(for: model.event)) { attendee in
+        //          HStack {
+        //            Text(attendee.userId.uuidString)
+        //            Spacer()
+        //            Text(attendee.status.displayName)
+        //          }
+        //          .font(.caption2)
+        //        }
+        //      }
+        //      .frame(height: 300)
         
-        if model.currentEventAttendee.attendanceStatus != 1 {
-          Button {
-//            model.logger.info("AttendanceStatus is not 1")
-            Task {
-              await model.acceptEventInvitation()
-              await model.loadTask()
+        HStack {
+          if model.currentEventAttendee.attendanceStatus != 2 {
+            Button {
+              model.logger.info("AttendanceStatus is not 2")
+              Task {
+                await model.declineEventInvitation()
+                await model.loadTask()
+              }
+            } label: {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(Color.red)
+                Text("Nope")
+              }
             }
-          } label: {
-            ZStack {
-              RoundedRectangle(cornerRadius: 8)
-                .fill(Color.green)
-              Text("am Stizzle!")
+          }
+          
+          if model.currentEventAttendee.attendanceStatus != 3 {
+            Button {
+              model.logger.info("AttendanceStatus is not 3")
+              Task {
+                await model.unsureEventInvitation()
+                await model.loadTask()
+              }
+            } label: {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(Color.yellow)
+                Text("maybe")
+              }
+              .frame(width: 70)
+            }
+          }
+          
+          if model.currentEventAttendee.attendanceStatus != 1 {
+            Button {
+              //            model.logger.info("AttendanceStatus is not 1")
+              Task {
+                await model.acceptEventInvitation()
+                await model.loadTask()
+              }
+            } label: {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(Color.green)
+                Text("am Stizzle!")
+              }
             }
           }
         }
+        .frame(height: 50)
+        .navigationTitle(model.event.title ?? "Event")
+        .task {
+          await model.loadTask()
+        }
+        Spacer()
       }
-      .frame(height: 50)
-      .navigationTitle(model.event.title ?? "Event")
-      .task {
-        await model.loadTask()
-      }
-      Spacer()
-    }
   }
 }
 

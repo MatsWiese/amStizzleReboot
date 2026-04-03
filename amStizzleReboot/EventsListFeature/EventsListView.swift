@@ -17,25 +17,24 @@ struct EventsListView: View {
   
   @State var avatarImage: AvatarImage?
   @State private var userEvents: [Event] = []
-  @State private var invitedEvents: [Event] = []
+  @State var invitedEvents: [Event] = []
   
 #if DEBUG
   @State private var allEvents: [Event] = []
 #endif
   
-  @State var isNewEventSheetPresented = false
+//  @State var isNewEventSheetPresented = false
   
   @State var showAccountSheet = false
   
   var body: some View {
-    NavigationStack {
     NavigationStack(path: $router.path) {
       ScrollView {
         if invitedEvents.isEmpty {
           ContentUnavailableView("Events loading...", systemImage: "arrow.2.circlepath.circle.fill")
         } else {
           ForEach(invitedEvents, id: \.id) { event in
-            EventRowView(event: event, currentUserId: currentUserId ?? UUID())
+            EventRowView(/*model: EventRowModel(), */event: event, currentUserId: currentUserId ?? UUID())
               .padding()
           }
         }
@@ -76,11 +75,12 @@ struct EventsListView: View {
       .task {
         await initialLoading()
       }
-      .sheet(isPresented: $isNewEventSheetPresented) {
-        NavigationStack {
-          CreateEventSheet()
-        }
-      }
+      .navigationDestination(for: Destination.self, destination: \.view)
+//      ..viewsheet(isPresented: $isNewEventSheetPresented) {
+//        NavigationStack {
+//          CreateEventSheet()
+//        }
+//      }
       .sheet(isPresented: $showAccountSheet) {
         NavigationStack {
           ProfileView()
@@ -207,8 +207,14 @@ struct EventsListView: View {
 }
 
 #Preview {
+  let events = [
+    Event(id: UUID(), title: "1", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID()),
+    Event(id: UUID(), title: "2", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID()),
+    Event(id: UUID(), title: "3", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID()),
+    Event(id: UUID(), title: "4", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID())
+  ]
   NavigationStack {
-    EventsListView(currentUserId: UUID())
+    EventsListView(currentUserId: UUID(), invitedEvents: events)
   }
   .environment(AppRouter())
 }

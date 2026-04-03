@@ -16,6 +16,7 @@ struct ProfileView: View {
   @State var firstName = ""
   @State var lastName = ""
   @State var username = ""
+  @State var profileId = UUID()
   
   @State var isLoading = false
   
@@ -72,6 +73,9 @@ struct ProfileView: View {
           }
           .textContentType(.name)
           
+        #if DEBUG
+        Text(profileId.uuidString)
+        #endif
 //          Section {
 //            Button("Update profile") {
 //              updateProfileButtonTapped()
@@ -131,6 +135,7 @@ struct ProfileView: View {
         firstName = profile.firstName ?? ""
         lastName = profile.lastName ?? ""
         username = profile.username ?? ""
+        profileId = profile.id
         
         if let avatarURL = profile.avatarURL, !avatarURL.isEmpty {
           try await downloadImage(path: avatarURL)

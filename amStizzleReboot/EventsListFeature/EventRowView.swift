@@ -9,7 +9,8 @@ import os
 import Supabase
 import SwiftUI
 
-//@Observable class EventRowModel {
+@Observable class EventRowModel {
+   var eventsAttendanceStatus = -1
 //  let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowModel")
 //
 //  let event: Event
@@ -33,15 +34,16 @@ import SwiftUI
 ////      }
 ////    }
 ////  }
-//}
+}
 
 struct EventRowView: View {
   @Environment(\.colorScheme) var colorScheme
   @Environment(AppRouter.self) private var router
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
-  //  @State var model: EventRowModel
+  @State var model = EventRowModel()
   //  let attendingUserNames: [String]
   @State var currentEventAttendee: EventAttendee?
+//  @State var eventsAttendanceStatus = -1
   let event: Event
   let currentUserId: UUID
   @State var eventAttendees: [EventAttendee] = []
@@ -86,9 +88,14 @@ struct EventRowView: View {
 //          .frame(minHeight: 90)
         }
         .padding()
+        .navigationDestination(for: Destination.self, destination: \.view)
       }
       .frame(height: 270)
       .containerShape(.rect(cornerRadius: 60))
+    }
+    .task {
+      await loadCurrentAttendee()
+      await loadEventAttendees()
     }
     //    .padding()
   }
@@ -153,20 +160,23 @@ struct EventRowView: View {
   
   func loadCurrentAttendee() async {
     do {
-      let currentUser = try await Supabase.shared.auth.session.user
+//      let currentUser = try await Supabase.shared.auth.session.user
       
       let currentEventAttendee: EventAttendee =
       try await Supabase.shared
         .from("event_attendees")
         .select()
-        .eq("profile_id", value: currentUser.id)
+        .eq("profile_id", value: currentUserId)
+        .eq("event_id", value: event.id)
         .single()
         .execute()
         .value
-      //
-      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
-      //
+      
+//      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
+      
       self.currentEventAttendee = currentEventAttendee
+      model.eventsAttendanceStatus = currentEventAttendee.attendanceStatus!
+      logger.info("event: \(event.title ?? "no title"), attendanceStatus: \(model.eventsAttendanceStatus)")
       //      await loadInvitedEvents()
     } catch {
       logger.error("\(error)")
@@ -179,12 +189,12 @@ struct EventRowView: View {
       try await Supabase.shared
         .from("event_attendees")
         .select()
-      //        .eq("profile_id", value: $0.id)
+//        .eq("profile_id", value: currentEventAttendee?.profileId)
         .eq("event_id", value: event.id)
         .execute()
         .value
       
-      logger.info("EventAttendeesCount: \(fetchedEventAttendees.count)")
+      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
       
       self.eventAttendees = fetchedEventAttendees
       
@@ -195,6 +205,7 @@ struct EventRowView: View {
 }
 
 struct ButtonView: View {
+  @State var model = EventRowModel()
   let logger = Logger(subsystem: "amStizzleReboot", category: "ButtonView")
   
   var event: Event
@@ -220,6 +231,7 @@ struct ButtonView: View {
     Button {
       switch buttonType {
       case .attendButton:
+        model.eventsAttendanceStatus = 1
         Task {
           do {
             try await Supabase.shared
@@ -232,9 +244,11 @@ struct ButtonView: View {
           } catch {
             logger.error("\(error.localizedDescription)")
           }
+          logger.info("event: \(event.title ?? "unknown title"), eventsAttendanceStatus: \(model.eventsAttendanceStatus)")
         }
         
       case .refuseButton:
+        model.eventsAttendanceStatus = 2
         Task {
           do {
             try await Supabase.shared
@@ -247,6 +261,7 @@ struct ButtonView: View {
           } catch {
             logger.error("\(error.localizedDescription)")
           }
+          logger.info("event: \(event.title ?? "unknown title"), eventsAttendanceStatus: \(model.eventsAttendanceStatus)")
         }
       }
     } label: {
@@ -364,7 +379,7 @@ struct AttendanceView: View {
 #Preview {
   NavigationStack {
     let currentSampleUserId = UUID()
-    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: currentSampleUserId, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: currentSampleUserId, attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
     let event = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
     let sampleEventAttendees = [
       currentSampleAttendee,
