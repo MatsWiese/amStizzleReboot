@@ -41,9 +41,21 @@ struct EventRowView: View {
           
           HStack {
             if let currentEventAttendee, currentEventAttendee.attendanceStatus == 1 {
-              AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteAccepted, image: "checkmark.circle.fill", text: "amStizzle!")
+              AttendanceView(
+                currentEventAttendee: currentEventAttendee,
+                eventAttendees: eventAttendees,
+                invitationState: .inviteAccepted,
+                image: "checkmark.circle.fill",
+                text: "amStizzle!"
+              )
             } else if let currentEventAttendee, currentEventAttendee.attendanceStatus == 2 {
-              AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
+              AttendanceView(
+                currentEventAttendee: currentEventAttendee,
+                eventAttendees: eventAttendees,
+                invitationState: .inviteDeclined,
+                image: "xmark.circle.fill",
+                text: "You declined"
+              )
             } else {
               ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
                 onTapAcceptButton()
@@ -53,19 +65,12 @@ struct EventRowView: View {
               }
             }
           }
-//          .frame(minHeight: 90)
         }
         .padding()
-        .navigationDestination(for: Destination.self, destination: \.view)
       }
       .frame(height: 270)
       .containerShape(.rect(cornerRadius: 60))
     }
-//    .task(id: currentUserId) {
-//      await model.loadCurrentAttendee()
-//      await loadEventAttendees()
-//    }
-    //    .padding()
   }
   
   var titleView: some View {

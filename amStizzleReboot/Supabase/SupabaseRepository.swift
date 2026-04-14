@@ -36,4 +36,31 @@ final class SupabaseRepository {
     logger.info("Current user: \(id)")
     return id
   }
+
+  func getCurrentUserAvatarImage() async throws -> AvatarImage? {
+    let currentUserID = try await getCurrentUserId()
+    let profile: Profile = try await client
+      .from("profiles")
+      .select()
+      .eq("id", value: currentUserID)
+      .single()
+      .execute()
+      .value
+
+    if let avatarURL = profile.avatarURL {
+      let data = try await client.storage.from("avatars").download(path: avatarURL)
+      return AvatarImage(data: data)
+    } else {
+      return nil
+    }
+  }
+
+  func updateAttendanceStatus(to newAttendenceStatus: Int, forEventID eventID: Event.ID) async throws {
+    let currentUserID = try await getCurrentUserId()
+    try await client.from("event_attendees")
+      .update(["attendance_status": newAttendenceStatus])
+      .eq("profile_id", value: currentUserID)
+      .eq("event_id", value: eventID)
+      .execute()
+  }
 }
