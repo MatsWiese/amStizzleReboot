@@ -1,10 +1,10 @@
+////
+////  ContentView.swift
+////  EventRowViewTest
+////
+////  Created by Mats Wiese on 11.10.25.
+////
 //
-//  ContentView.swift
-//  EventRowViewTest
-//
-//  Created by Mats Wiese on 11.10.25.
-//
-
 import os
 import Supabase
 import SwiftUI
@@ -72,143 +72,143 @@ struct EventRowView: View {
       .containerShape(.rect(cornerRadius: 60))
     }
   }
-  
-  var titleView: some View {
-    ZStack(alignment: .bottomLeading) {
-      ConcentricRectangle()
-        .fill(Color.blue.opacity(0.5))
-        .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
-        .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-      Text(event.title ?? "Unknown Event")
-        .minimumScaleFactor(0.5)
-        .foregroundStyle(Color.primary)
-        .font(.largeTitle)
-        .fontWeight(.bold)
-        .padding()
+    
+    var titleView: some View {
+      ZStack(alignment: .bottomLeading) {
+        ConcentricRectangle()
+          .fill(Color.blue.opacity(0.5))
+          .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
+          .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
+        Text(event.title ?? "Unknown Title")
+          .minimumScaleFactor(0.5)
+          .foregroundStyle(Color.primary)
+          .font(.largeTitle)
+          .fontWeight(.bold)
+          .padding()
+          .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+          .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+      }
+      .frame(height: 70)
+    }
+    
+    var timeSection: some View {
+      ZStack(alignment: .leading) {
+        Rectangle()
+          .fill(Color.gray.opacity(0.2))
+          .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
+          .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
+        HStack {
+          Text(event.startDate?
+            .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
+          .minimumScaleFactor(0.5)
+          .font(.title)
+          .fontWeight(.bold)
+          .fontDesign(.rounded)
+          .foregroundStyle(Color.primary)
+          
+          Spacer()
+          HStack {
+            VStack(alignment: .trailing) {
+              Text("From:")
+              Text("to:")
+            }
+            .font(.headline)
+            .fontDesign(.monospaced)
+            
+            VStack(alignment: .leading) {
+              Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+              Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+            }
+            .minimumScaleFactor(0.8)
+            .fontWeight(.black)
+          }
+          .font(.title2)
+        }
         .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
         .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-    }
-    .frame(height: 70)
-  }
-  
-  var timeSection: some View {
-    ZStack(alignment: .leading) {
-      Rectangle()
-        .fill(Color.gray.opacity(0.2))
-        .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
-        .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-      HStack {
-        Text(event.startDate?
-          .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
-        .minimumScaleFactor(0.5)
-        .font(.title)
-        .fontWeight(.bold)
-        .fontDesign(.rounded)
-        .foregroundStyle(Color.primary)
-        
-        Spacer()
-        HStack {
-          VStack(alignment: .trailing) {
-            Text("From:")
-            Text("to:")
-          }
-          .font(.headline)
-          .fontDesign(.monospaced)
-          
-          VStack(alignment: .leading) {
-            Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
-            Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
-          }
-          .minimumScaleFactor(0.8)
-          .fontWeight(.black)
-        }
-        .font(.title2)
+        .padding()
       }
-      .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-      .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-      .padding()
     }
-  }
   
-//#warning("join Profiles to get usernames")
-//  func loadEventAttendees() async {
-//    do {
-//      let fetchedEventAttendees: [EventAttendee] =
-//      try await Supabase.shared
-//        .from("event_attendees")
-//        .select(
-//          """
-//            id,
-//            event_id,
-//            profile_id,
-//            profiles ( id, username )
-//            attendance_status,
-//            created_at,
-//            updated_at,
-//          
-//          """
-//        )
-////        .eq("profile_id", value: "id")
-//        .eq("event_id", value: event.id)
-//        .execute()
-//        .value
-//      
-//      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
-//      logger.info("EventAttendees: \(eventAttendees.count)")
-//      
-//      self.eventAttendees = fetchedEventAttendees
-//      
-//    } catch {
-//      logger.error("\(error)")
-//    }
-//  }
-  
-  func updateAttendanceStatus(to newStatus: Int) async {
-//    let previousAttendee = currentEventAttendee
-//    let previousEventAttendees = eventAttendees
-//    
-//    if let currentEventAttendee {
-//      let updatedAttendee = EventAttendee(
-//        id: currentEventAttendee.id,
-//        eventId: currentEventAttendee.eventId,
-//        profileId: currentEventAttendee.profileId!,
-//        username: currentEventAttendee.username,
-//        attendanceStatus: newStatus,
-//        createdAt: currentEventAttendee.createdAt,
-//        updatedAt: Date.now
-//      )
-//      self.currentEventAttendee = updatedAttendee
-//      replaceAttendee(updatedAttendee)
-//    }
-//    
-//    model.eventsAttendanceStatus = newStatus
-//    
-//    do {
-//      try await Supabase.shared
-//        .from("event_attendees")
-//        .update(["attendance_status" : newStatus])
-//        .eq("profile_id", value: currentUserId)
-//        .eq("event_id", value: event.id)
-//        .execute()
-//      logger.info("AttendanceStatus set to \(newStatus)")
-//      
-//      await model.loadCurrentAttendee()
-//      await loadEventAttendees()
-//    } catch {
-//      logger.error("\(error.localizedDescription)")
-//      currentEventAttendee = previousAttendee
-//      eventAttendees = previousEventAttendees
-//      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
-//    }
-  }
-  
-  private func replaceAttendee(_ updatedAttendee: EventAttendee) {
-//    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
-//      eventAttendees[index] = updatedAttendee
-//    } else {
-//      eventAttendees.append(updatedAttendee)
-//    }
-  }
+  //#warning("join Profiles to get usernames")
+  //  func loadEventAttendees() async {
+  //    do {
+  //      let fetchedEventAttendees: [EventAttendee] =
+  //      try await Supabase.shared
+  //        .from("event_attendees")
+  //        .select(
+  //          """
+  //            id,
+  //            event_id,
+  //            profile_id,
+  //            profiles ( id, username )
+  //            attendance_status,
+  //            created_at,
+  //            updated_at,
+  //
+  //          """
+  //        )
+  //        .eq("profile_id", value: "id")
+  //        .eq("event_id", value: event.id)
+  //        .execute()
+  //        .value
+  //
+  //      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
+  //      logger.info("EventAttendees: \(eventAttendees.count)")
+  //
+  //      self.eventAttendees = fetchedEventAttendees
+  //
+  //    } catch {
+  //      logger.error("\(error)")
+  //    }
+  //  }
+  //
+  //  func updateAttendanceStatus(to newStatus: Int) async {
+  //    let previousAttendee = currentEventAttendee
+  //    let previousEventAttendees = eventAttendees
+  //
+  //    if let currentEventAttendee {
+  //      let updatedAttendee = EventAttendee(
+  //        id: currentEventAttendee.id,
+  //        eventId: currentEventAttendee.eventId,
+  //        profileId: currentEventAttendee.profileId!,
+  //        username: currentEventAttendee.username,
+  //        attendanceStatus: newStatus,
+  //        createdAt: currentEventAttendee.createdAt,
+  //        updatedAt: Date.now
+  //      )
+  //      self.currentEventAttendee = updatedAttendee
+  //      replaceAttendee(updatedAttendee)
+  //    }
+  //
+  //    model.eventsAttendanceStatus = newStatus
+  //
+  //    do {
+  //      try await Supabase.shared
+  //        .from("event_attendees")
+  //        .update(["attendance_status" : newStatus])
+  //        .eq("profile_id", value: currentUserId)
+  //        .eq("event_id", value: event.id)
+  //        .execute()
+  //      logger.info("AttendanceStatus set to \(newStatus)")
+  //
+  //      await model.loadCurrentAttendee()
+  //      await loadEventAttendees()
+  //    } catch {
+  //      logger.error("\(error.localizedDescription)")
+  //      currentEventAttendee = previousAttendee
+  //      eventAttendees = previousEventAttendees
+  //      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
+  //    }
+  //  }
+  //
+  //  private func replaceAttendee(_ updatedAttendee: EventAttendee) {
+  //    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
+  //      eventAttendees[index] = updatedAttendee
+  //    } else {
+  //      eventAttendees.append(updatedAttendee)
+  //    }
+  //  }
 }
 
 struct ButtonView: View {
@@ -257,7 +257,7 @@ struct ButtonView: View {
     }
   }
 }
-
+//
 struct AttendanceView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendanceView")
   
@@ -317,7 +317,7 @@ struct AttendanceView: View {
             }
           }
         } else {
-        HStack(spacing: -6) {
+          HStack(spacing: -6) {
             ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
 #warning("implement circles with usernames after joined fetch")
               //            ZStack {
@@ -333,7 +333,7 @@ struct AttendanceView: View {
               //            }
               Image(systemName: "person.circle")
                 .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.username == currentEventAttendee.username ? Color.orange : Color.primary)
+                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
                 .font(.title2)
                 .fontWeight(.bold)
                 .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
@@ -355,7 +355,7 @@ struct AttendanceView: View {
               //            }
               Image(systemName: "person.circle")
                 .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.username == currentEventAttendee.username ? Color.mint : Color.primary)
+                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
                 .font(.title2)
                 .fontWeight(.bold)
                 .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
@@ -371,22 +371,24 @@ struct AttendanceView: View {
     }
   }
 }
-
+//
 //#Preview {
 //  NavigationStack {
 //    let currentSampleUserId = UUID()
-//    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
-//    let event = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
+//    let sampleOnTapAcceptButton: () -> Void
+//    let sampleOnTapDeclineButton: () -> Void
+//    let sampleCurrentEventAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//    let sampleEvent = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
 //    let sampleEventAttendees = [
-//      currentSampleAttendee,
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//      sampleCurrentEventAttendee,
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Egon", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Erwin", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Erna", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Klaus", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Hagen", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Josef", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
 //    ]
-//    EventRowView(currentEventAttendee: currentSampleAttendee, event: event, currentUserId: currentSampleUserId, eventAttendees: sampleEventAttendees)
+//    EventRowView(event: sampleEvent, eventAttendees: sampleEventAttendees, currentEventAttendee: sampleCurrentEventAttendee, onTapAcceptButton: {}, onTapDeclineButton: {})
 //  }
 //  .environment(AppRouter())
 //}

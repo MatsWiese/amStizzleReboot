@@ -17,7 +17,7 @@ final class EventsListViewModel {
   private(set) var events: [Event] = []
   private(set) var avatarImage: AvatarImage?
 
-  private var currentUserID: UUID?
+  var currentUserID: UUID?
   private(set) var eventAttendees: [EventAttendee] = []
 
   init(repository: SupabaseRepository = .shared) {
@@ -64,7 +64,7 @@ final class EventsListViewModel {
         .execute()
         .value
 
-      logger.info("InvitedEventsCount: \(self.events.count)")
+      logger.info("EventsCount: \(self.events.count)")
 
       self.avatarImage = try await repository.getCurrentUserAvatarImage()
     } catch {
@@ -103,9 +103,9 @@ struct EventsListView: View {
           ForEach(viewModel.events) { event in
             EventRowView(
               event: event,
-              eventAttendees: viewModel.eventAttendees.filter { $0.id == event.id },
+              eventAttendees: viewModel.eventAttendees.filter { $0.eventId == event.id },
               currentEventAttendee: viewModel.eventAttendees.first {
-                $0.id == event.id && viewModel.currentUserID == $0.profileId
+                $0.eventId == event.id && $0.profileId == viewModel.currentUserID
               },
               onTapAcceptButton: {
                 viewModel.onAccept(forEventID: event.id)
