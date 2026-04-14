@@ -18,21 +18,10 @@ final class EventsListViewModel {
   private(set) var avatarImage: AvatarImage?
 
   private var currentUserID: UUID?
-  private var eventAttendees: [EventAttendee] = []
+  private(set) var eventAttendees: [EventAttendee] = []
 
   init(repository: SupabaseRepository = .shared) {
     self.repository = repository
-  }
-
-  func eventAttendees(forEventID eventID: Event.ID) -> [EventAttendee] {
-    eventAttendees.filter { $0.id == eventID }
-  }
-
-  func eventAttendee(forEventID eventID: Event.ID) -> EventAttendee? {
-    eventAttendees
-      .first {
-        $0.id == eventID && currentUserID == $0.profileId
-      }
   }
 
   func onAccept(forEventID eventID: Event.ID) {
@@ -66,6 +55,12 @@ final class EventsListViewModel {
         .select("*, event_attendees!inner(*)")
         .eq("event_attendees.profile_id", value: currentUserID)
         .order("start_date", ascending: true)
+        .execute()
+        .value
+
+      self.eventAttendees = try await Supabase.shared
+        .from("event_attendees")
+        .select()
         .execute()
         .value
 
@@ -108,8 +103,10 @@ struct EventsListView: View {
           ForEach(viewModel.events) { event in
             EventRowView(
               event: event,
-              eventAttendees: viewModel.eventAttendees(forEventID: event.id),
-              currentEventAttendee: viewModel.eventAttendee(forEventID: event.id),
+              eventAttendees: viewModel.eventAttendees.filter { $0.id == event.id },
+              currentEventAttendee: viewModel.eventAttendees.first {
+                $0.id == event.id && viewModel.currentUserID == $0.profileId
+              },
               onTapAcceptButton: {
                 viewModel.onAccept(forEventID: event.id)
               },
