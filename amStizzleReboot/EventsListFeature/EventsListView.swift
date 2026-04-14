@@ -31,7 +31,13 @@ struct EventsListView: View {
     NavigationStack(path: $router.path) {
       ScrollView {
         if invitedEvents.isEmpty {
-          ContentUnavailableView("Events loading...", systemImage: "arrow.2.circlepath.circle.fill")
+          VStack {
+            ProgressView()
+              .scaleEffect(2)
+            Text("loading Events...")
+              .padding(.top)
+          }
+          .frame(height: 200)
         } else {
           ForEach(invitedEvents, id: \.id) { event in
             EventRowView(/*model: EventRowModel(), */event: event, currentUserId: currentUserId ?? UUID())
@@ -76,7 +82,7 @@ struct EventsListView: View {
         await initialLoading()
       }
       .navigationDestination(for: Destination.self, destination: \.view)
-//      ..viewsheet(isPresented: $isNewEventSheetPresented) {
+//      .sheet(isPresented: $isNewEventSheetPresented) {
 //        NavigationStack {
 //          CreateEventSheet()
 //        }
@@ -190,9 +196,7 @@ struct EventsListView: View {
           .in("id", values: idsToDelete)
           .execute()
         
-        //        await MainActor.run {
         userEvents.remove(atOffsets: offsets)
-        //        }
       } catch {
         logger.error("\(error)")
       }

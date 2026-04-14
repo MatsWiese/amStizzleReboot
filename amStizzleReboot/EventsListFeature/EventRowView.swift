@@ -10,45 +10,79 @@ import Supabase
 import SwiftUI
 
 @Observable class EventRowModel {
-   var eventsAttendanceStatus = -1
-//  let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowModel")
-//
-//  let event: Event
-//  let currentUser: EventAttendee
-//
-//  init(event: Event) {
-//    self.event = event
+  let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowModel")
+  
+  let repository = SupabaseRepository.shared
+  let event: Event
+//  let currentUserId: UUID
+//  var currentEventAttendee: EventAttendee?
+  var eventsAttendanceStatus = -1
+//  var eventAttendees: [EventAttendee] = []
+  
+  init(event: Event) {
+    self.event = event
+  }
+  
+  func loadCurrentAttendee() async {
+    do {
+      let currentEventAttendee = try await repository.getCurrentEventAttendee(for: event.id)
+      
+//      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
+      
+//      self.currentEventAttendee = currentEventAttendee
+      eventsAttendanceStatus = currentEventAttendee.attendanceStatus!
+//      logger.info("event: \(self.event.title ?? "no title"), attendanceStatus: \(self.eventsAttendanceStatus)")
+      //      await loadInvitedEvents()
+    } catch {
+//      logger.error("\(error)")
+    }
+  }
+//#warning("join Profiles to get usernames")
+//  func loadEventAttendees() async {
+//    do {
+//      let fetchedEventAttendees: [EventAttendee] =
+//      try await Supabase.shared
+//        .from("event_attendees")
+//        .select()
+////        .eq("profile_id", value: currentEventAttendee?.profileId)
+//        .eq("event_id", value: event.id)
+//        .execute()
+//        .value
+//      
+//      logger.info("Event: \(self.event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
+//      
+//      self.eventAttendees = fetchedEventAttendees
+//      
+//    } catch {
+//      logger.error("\(error)")
+//    }
 //  }
-////  func acceptEventInvitation() async {
-////    Task {
-////      do {
-////        try await Supabase.shared
-////          .from("event_attendees")
-////          .update(["attendance_status" : 1])
-////          .eq("profile_id", value: currentProfile.id)
-////          .eq("event_id", value: event.id)
-////          .execute()
-////        logger.info("AttendanceStatus set to 1")
-////      } catch {
-////        logger.error("\(error.localizedDescription)")
-////      }
-////    }
-////  }
+//
 }
 
 struct EventRowView: View {
-  @Environment(\.colorScheme) var colorScheme
+  @Environment(\.colorScheme) private var colorScheme
   @Environment(AppRouter.self) private var router
-  let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
-  @State var model = EventRowModel()
+  private let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
+  @State private var model: EventRowModel
+  
   //  let attendingUserNames: [String]
-  @State var currentEventAttendee: EventAttendee?
-//  @State var eventsAttendanceStatus = -1
-  let event: Event
-  let currentUserId: UUID
-  @State var eventAttendees: [EventAttendee] = []
+  @State private var currentEventAttendee: EventAttendee?
+  //  @State var eventsAttendanceStatus = -1
+  private let event: Event
+  private let currentUserId: UUID
+  @State private var eventAttendees: [EventAttendee] = []
   //  let groupColor: Color
   
+  private var attendanceStatus: Int {
+    currentEventAttendee?.attendanceStatus ?? model.eventsAttendanceStatus
+  }
+  
+  init(event: Event, currentUserId: UUID) {
+    _model = State(wrappedValue: EventRowModel(event: event))
+    self.event = event
+    self.currentUserId = currentUserId
+  }
   var body: some View {
     VStack {
       ZStack {
@@ -59,8 +93,9 @@ struct EventRowView: View {
         
         VStack {
           Button {
-//            EventDetailView(event: event)
-            router.push(.eventDetail(event: event))
+            if !router.path.contains(.eventDetail(event: event)) {
+              router.push(.eventDetail(event: event))
+            }
           } label: {
             TitleView
           }
@@ -68,21 +103,17 @@ struct EventRowView: View {
           TimeSection
           
           HStack {
-            if model.eventsAttendanceStatus == 1 {
-              Button {
-                router.push(.eventDetail(event: event))
-              } label: {
-                AttendanceView(currentEventAttendee: currentEventAttendee!,eventAttendees: eventAttendees, invitationState: .inviteAccepted, image: "checkmark.circle.fill", text: "amStizzle!")
-              }
-            } else if model.eventsAttendanceStatus == 2 {
-              Button {
-                router.push(.eventDetail(event: event))
-              } label: {
-                AttendanceView(currentEventAttendee: currentEventAttendee!, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
-              }
+            if let currentEventAttendee, attendanceStatus == 1 {
+              AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteAccepted, image: "checkmark.circle.fill", text: "amStizzle!")
+            } else if let currentEventAttendee, attendanceStatus == 2 {
+              AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
             } else {
-              ButtonView(event: event, userId: currentUserId, buttonType: .refuseButton, image: "xmark", text: "nope, i'm out")
-              ButtonView(event: event, userId: currentUserId, buttonType: .attendButton, image: "checkmark", text: "am Stizzle!")
+              ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
+                await updateAttendanceStatus(to: 2)
+              }
+              ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
+                await updateAttendanceStatus(to: 1)
+              }
             }
           }
 //          .frame(minHeight: 90)
@@ -93,8 +124,8 @@ struct EventRowView: View {
       .frame(height: 270)
       .containerShape(.rect(cornerRadius: 60))
     }
-    .task {
-      await loadCurrentAttendee()
+    .task(id: currentUserId) {
+      await model.loadCurrentAttendee()
       await loadEventAttendees()
     }
     //    .padding()
@@ -158,43 +189,56 @@ struct EventRowView: View {
     //    .padding(.vertical, 6)
   }
   
-  func loadCurrentAttendee() async {
-    do {
-//      let currentUser = try await Supabase.shared.auth.session.user
-      
-      let currentEventAttendee: EventAttendee =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select()
-        .eq("profile_id", value: currentUserId)
-        .eq("event_id", value: event.id)
-        .single()
-        .execute()
-        .value
-      
-//      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
-      
-      self.currentEventAttendee = currentEventAttendee
-      model.eventsAttendanceStatus = currentEventAttendee.attendanceStatus!
-      logger.info("event: \(event.title ?? "no title"), attendanceStatus: \(model.eventsAttendanceStatus)")
-      //      await loadInvitedEvents()
-    } catch {
-      logger.error("\(error)")
-    }
-  }
+//  func loadCurrentAttendee() async {
+//    do {
+//      let currentEventAttendee: EventAttendee =
+//      try await Supabase.shared
+//        .from("event_attendees")
+//        .select()
+//        .eq("profile_id", value: currentUserId)
+//        .eq("event_id", value: event.id)
+//        .single()
+//        .execute()
+//        .value
+//      
+////      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
+//      
+//      self.currentEventAttendee = currentEventAttendee
+//      model.eventsAttendanceStatus = currentEventAttendee.attendanceStatus ?? -1
+//      logger.info("event: \(event.title ?? "no title"), attendanceStatus: \(model.eventsAttendanceStatus)")
+//      //      await loadInvitedEvents()
+//    } catch {
+//      logger.error("\(error)")
+//      currentEventAttendee = nil
+//      model.eventsAttendanceStatus = -1
+//    }
+//  }
+  
 #warning("join Profiles to get usernames")
   func loadEventAttendees() async {
     do {
       let fetchedEventAttendees: [EventAttendee] =
       try await Supabase.shared
         .from("event_attendees")
-        .select()
-//        .eq("profile_id", value: currentEventAttendee?.profileId)
+        .select(
+          """
+            id,
+            event_id,
+            profile_id,
+            profiles ( id, username )
+            attendance_status,
+            created_at,
+            updated_at,
+          
+          """
+        )
+//        .eq("profile_id", value: "id")
         .eq("event_id", value: event.id)
         .execute()
         .value
       
       logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
+      logger.info("EventAttendees: \(eventAttendees.count)")
       
       self.eventAttendees = fetchedEventAttendees
       
@@ -202,15 +246,56 @@ struct EventRowView: View {
       logger.error("\(error)")
     }
   }
+  
+  func updateAttendanceStatus(to newStatus: Int) async {
+    let previousAttendee = currentEventAttendee
+    let previousEventAttendees = eventAttendees
+    
+    if let currentEventAttendee {
+      let updatedAttendee = EventAttendee(
+        id: currentEventAttendee.id,
+        eventId: currentEventAttendee.eventId,
+        profileId: currentEventAttendee.profileId!,
+        username: currentEventAttendee.username,
+        attendanceStatus: newStatus,
+        createdAt: currentEventAttendee.createdAt,
+        updatedAt: Date.now
+      )
+      self.currentEventAttendee = updatedAttendee
+      replaceAttendee(updatedAttendee)
+    }
+    
+    model.eventsAttendanceStatus = newStatus
+    
+    do {
+      try await Supabase.shared
+        .from("event_attendees")
+        .update(["attendance_status" : newStatus])
+        .eq("profile_id", value: currentUserId)
+        .eq("event_id", value: event.id)
+        .execute()
+      logger.info("AttendanceStatus set to \(newStatus)")
+      
+      await model.loadCurrentAttendee()
+      await loadEventAttendees()
+    } catch {
+      logger.error("\(error.localizedDescription)")
+      currentEventAttendee = previousAttendee
+      eventAttendees = previousEventAttendees
+      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
+    }
+  }
+  
+  private func replaceAttendee(_ updatedAttendee: EventAttendee) {
+    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
+      eventAttendees[index] = updatedAttendee
+    } else {
+      eventAttendees.append(updatedAttendee)
+    }
+  }
 }
 
 struct ButtonView: View {
-  @State var model = EventRowModel()
-  let logger = Logger(subsystem: "amStizzleReboot", category: "ButtonView")
-  
-  var event: Event
-  var userId: UUID
-  
   enum ButtonType {
     case attendButton
     case refuseButton
@@ -226,43 +311,12 @@ struct ButtonView: View {
   var buttonType: ButtonType
   var image: String
   var text: String
+  let action: () async -> Void
   
   var body: some View {
     Button {
-      switch buttonType {
-      case .attendButton:
-        model.eventsAttendanceStatus = 1
-        Task {
-          do {
-            try await Supabase.shared
-              .from("event_attendees")
-              .update(["attendance_status" : 1])
-              .eq("profile_id", value: userId)
-              .eq("event_id", value: event.id)
-              .execute()
-            logger.info("AttendanceStatus set to 1")
-          } catch {
-            logger.error("\(error.localizedDescription)")
-          }
-          logger.info("event: \(event.title ?? "unknown title"), eventsAttendanceStatus: \(model.eventsAttendanceStatus)")
-        }
-        
-      case .refuseButton:
-        model.eventsAttendanceStatus = 2
-        Task {
-          do {
-            try await Supabase.shared
-              .from("event_attendees")
-              .update(["attendance_status" : 2])
-              .eq("profile_id", value: userId)
-              .eq("event_id", value: event.id)
-              .execute()
-            logger.info("AttendanceStatus set to 2")
-          } catch {
-            logger.error("\(error.localizedDescription)")
-          }
-          logger.info("event: \(event.title ?? "unknown title"), eventsAttendanceStatus: \(model.eventsAttendanceStatus)")
-        }
+      Task {
+        await action()
       }
     } label: {
       ZStack {
@@ -290,6 +344,8 @@ struct ButtonView: View {
 
 struct AttendanceView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendanceView")
+  
+  @State private var showAttendeeList = false
   
   enum InvitationState {
     case inviteAccepted
@@ -325,72 +381,95 @@ struct AttendanceView: View {
           .fontWeight(.bold)
           .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
           .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-        HStack(spacing: -6) {
-          ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
-#warning("implement circles with usernames after joined fetch")
-            //            ZStack {
-            //              Circle()
-            //                .fill(Color.gray)
-            //              HStack {
-            //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-            //              }
-            //              .fontWeight(.bold)
-            //              .fontDesign(.rounded)
-            //              .foregroundStyle(Color.white)
-            //              .fontWidth(.compressed)
-            //            }
-            Image(systemName: "person.circle")
-              .minimumScaleFactor(0.5)
-              .foregroundStyle(attendee.profileId == currentEventAttendee.profileId ? Color.orange : Color.primary)
-              .font(.title2)
-              .fontWeight(.bold)
-              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+        if showAttendeeList {
+          VStack(alignment: .leading) {
+            Text("Attending:")
+            ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
+              Text(attendee.username ?? "0")
+            }
+            Text("Not Attending:")
+            
+            ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+              Text(attendee.username ?? "0")
+            }
+            Text("Invited:")
+            HStack {
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
+                Text(attendee.username ?? "0")
+              }
+            }
           }
-          Spacer()
-          ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+        } else {
+        HStack(spacing: -6) {
+            ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
 #warning("implement circles with usernames after joined fetch")
-            //            ZStack {
-            //              Circle()
-            //                .fill(Color.gray)
-            //              HStack {
-            //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-            //              }
-            //              .fontWeight(.bold)
-            //              .fontDesign(.rounded)
-            //              .foregroundStyle(Color.white)
-            //              .fontWidth(.compressed)
-            //            }
-            Image(systemName: "person.circle")
-              .minimumScaleFactor(0.5)
-              .foregroundStyle(attendee.profileId == currentEventAttendee.profileId ? Color.mint : Color.primary)
-              .font(.title2)
-              .fontWeight(.bold)
-              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+              //            ZStack {
+              //              Circle()
+              //                .fill(Color.gray)
+              //              HStack {
+              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
+              //              }
+              //              .fontWeight(.bold)
+              //              .fontDesign(.rounded)
+              //              .foregroundStyle(Color.white)
+              //              .fontWidth(.compressed)
+              //            }
+              Image(systemName: "person.circle")
+                .minimumScaleFactor(0.5)
+                .foregroundStyle(attendee.username == currentEventAttendee.username ? Color.orange : Color.primary)
+                .font(.title2)
+                .fontWeight(.bold)
+                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+            }
+            Spacer()
+            ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+#warning("implement circles with usernames after joined fetch")
+              //            ZStack {
+              //              Circle()
+              //                .fill(Color.gray)
+              //              HStack {
+              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
+              //              }
+              //              .fontWeight(.bold)
+              //              .fontDesign(.rounded)
+              //              .foregroundStyle(Color.white)
+              //              .fontWidth(.compressed)
+              //            }
+              Image(systemName: "person.circle")
+                .minimumScaleFactor(0.5)
+                .foregroundStyle(attendee.username == currentEventAttendee.username ? Color.mint : Color.primary)
+                .font(.title2)
+                .fontWeight(.bold)
+                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+            }
           }
         }
+      }
+      .onTapGesture {
+        showAttendeeList.toggle()
       }
       .padding()
     }
   }
 }
 
-#Preview {
-  NavigationStack {
-    let currentSampleUserId = UUID()
-    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: currentSampleUserId, attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
-    let event = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
-    let sampleEventAttendees = [
-      currentSampleAttendee,
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
-    ]
-    EventRowView(currentEventAttendee: currentSampleAttendee, event: event, currentUserId: currentSampleUserId, eventAttendees: sampleEventAttendees)
-  }
-  .environment(AppRouter())
-}
+//#Preview {
+//  NavigationStack {
+//    let currentSampleUserId = UUID()
+//    let currentSampleAttendee = EventAttendee(id: UUID(), eventId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//    let event = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
+//    let sampleEventAttendees = [
+//      currentSampleAttendee,
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventId: event.id, profileId: UUID(), attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//    ]
+//    EventRowView(currentEventAttendee: currentSampleAttendee, event: event, currentUserId: currentSampleUserId, eventAttendees: sampleEventAttendees)
+//  }
+//  .environment(AppRouter())
+//}

@@ -103,7 +103,7 @@ import Supabase
       Task {
         do {
           logger.info("trying to insert new eventAttendee")
-          let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: profile.id, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+          let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: profile.id, username: profile.username, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
           
           try await Supabase.shared
             .from("event_attendees")

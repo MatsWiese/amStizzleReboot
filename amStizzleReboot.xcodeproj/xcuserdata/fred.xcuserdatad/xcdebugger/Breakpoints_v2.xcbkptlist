@@ -110,50 +110,6 @@
             endingLineNumber = "60"
             landmarkName = "delete(at:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 851e3dfb68d595cd"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for amStizzleReboot.AttendeeManagerModel.delete(at: Foundation.IndexSet) async -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "60"
-                  endingLineNumber = "60">
-               </Location>
-               <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - e60281124e55207d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for amStizzleReboot.AttendeeManagerModel.delete(at: Foundation.IndexSet) async -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "60"
-                  endingLineNumber = "60">
-               </Location>
-               <Location
-                  uuid = "456B0062-309E-4E1B-8DA2-ADE2A4DB2ACE - 34ab724a661bbbc8"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for amStizzleReboot.AttendeeManagerModel.delete(at: Foundation.IndexSet) async -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "60"
-                  endingLineNumber = "60">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -170,50 +126,22 @@
             endingLineNumber = "131"
             landmarkName = "sendInvitationButtonTapped()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - e850b75d5c318e6f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for closure #1 () async -&gt; () in amStizzleReboot.AttendeeManagerModel.sendInvitationButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "131"
-                  endingLineNumber = "131">
-               </Location>
-               <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - f7fd32b858e1286d"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for closure #1 () async -&gt; () in amStizzleReboot.AttendeeManagerModel.sendInvitationButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "131"
-                  endingLineNumber = "131">
-               </Location>
-               <Location
-                  uuid = "4B8607FE-275F-4B3B-8C35-91189EB080CB - c441c1f6f5175468"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for closure #1 () async -&gt; () in amStizzleReboot.AttendeeManagerModel.sendInvitationButtonTapped() -&gt; ()"
-                  moduleName = "amStizzleReboot.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/fred/Developer/xcode-projects/amStizzleReboot/amStizzleReboot/EventsListFeature/AttendeeManagerSheet.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "131"
-                  endingLineNumber = "131">
-               </Location>
-            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "47D6B594-28DA-4D84-A78A-C651ED6CEAA1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "amStizzleReboot/EventsListFeature/EventRowView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "246"
+            endingLineNumber = "246"
+            landmarkName = "loadEventAttendees()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

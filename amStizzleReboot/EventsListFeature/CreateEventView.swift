@@ -30,9 +30,9 @@ import Supabase
   var eventEnd = Date() + 3600
   
   func saveEventButtonTapped() {
-    event = Event(id: self.event.id, title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: Date.now, updatedAt: Date.now, creatorId: currentProfileId)
+    event = Event(id: self.event.id, title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: self.event.createdAt, updatedAt: Date.now, creatorId: currentProfileId)
     
-    let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+    let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, username: nil, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
     
     Task {
       do {
