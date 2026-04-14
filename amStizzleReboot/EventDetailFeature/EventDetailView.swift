@@ -233,6 +233,14 @@ import Dependencies
     await reloadEventAttendees()
     await loadAttendanceStatus()
   }
+  
+  func onAcceptEvent() {
+    // TODO: Implementation
+  }
+  
+  func onDeclineEvent() {
+    // TODO: Implementation
+  }
 }
 
 struct EventDetailView: View {
@@ -245,10 +253,11 @@ struct EventDetailView: View {
   var body: some View {
       VStack {
         EventRowView(
-          currentEventAttendee: model.currentEventAttendee,
           event: model.event,
-          currentUserId: model.currentProfile.id,
-          eventAttendees: model.eventAttendees
+          eventAttendees: model.eventAttendees,
+          currentEventAttendee: model.currentEventAttendee,
+          onTapAcceptButton: model.onAcceptEvent,
+          onTapDeclineButton: model.onDeclineEvent
         )
         HStack {
           Text("Creator: ")

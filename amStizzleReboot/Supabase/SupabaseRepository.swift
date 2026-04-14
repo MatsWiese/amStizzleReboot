@@ -31,7 +31,7 @@ final class SupabaseRepository {
       .value
   }
   
-  private func getCurrentUserId() async throws -> UUID {
+  func getCurrentUserId() async throws -> UUID {
     let id = try await client.auth.session.user.id
     logger.info("Current user: \(id)")
     return id

@@ -9,80 +9,17 @@ import os
 import Supabase
 import SwiftUI
 
-@Observable class EventRowModel {
-  let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowModel")
-  
-  let repository = SupabaseRepository.shared
-  let event: Event
-//  let currentUserId: UUID
-//  var currentEventAttendee: EventAttendee?
-  var eventsAttendanceStatus = -1
-//  var eventAttendees: [EventAttendee] = []
-  
-  init(event: Event) {
-    self.event = event
-  }
-  
-  func loadCurrentAttendee() async {
-    do {
-      let currentEventAttendee = try await repository.getCurrentEventAttendee(for: event.id)
-      
-//      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
-      
-//      self.currentEventAttendee = currentEventAttendee
-      eventsAttendanceStatus = currentEventAttendee.attendanceStatus!
-//      logger.info("event: \(self.event.title ?? "no title"), attendanceStatus: \(self.eventsAttendanceStatus)")
-      //      await loadInvitedEvents()
-    } catch {
-//      logger.error("\(error)")
-    }
-  }
-//#warning("join Profiles to get usernames")
-//  func loadEventAttendees() async {
-//    do {
-//      let fetchedEventAttendees: [EventAttendee] =
-//      try await Supabase.shared
-//        .from("event_attendees")
-//        .select()
-////        .eq("profile_id", value: currentEventAttendee?.profileId)
-//        .eq("event_id", value: event.id)
-//        .execute()
-//        .value
-//      
-//      logger.info("Event: \(self.event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
-//      
-//      self.eventAttendees = fetchedEventAttendees
-//      
-//    } catch {
-//      logger.error("\(error)")
-//    }
-//  }
-//
-}
-
 struct EventRowView: View {
   @Environment(\.colorScheme) private var colorScheme
   @Environment(AppRouter.self) private var router
   private let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
-  @State private var model: EventRowModel
   
-  //  let attendingUserNames: [String]
-  @State private var currentEventAttendee: EventAttendee?
-  //  @State var eventsAttendanceStatus = -1
-  private let event: Event
-  private let currentUserId: UUID
-  @State private var eventAttendees: [EventAttendee] = []
-  //  let groupColor: Color
+  let event: Event
+  let eventAttendees: [EventAttendee]
+  let currentEventAttendee: EventAttendee?
+  let onTapAcceptButton: () -> Void
+  let onTapDeclineButton: () -> Void
   
-  private var attendanceStatus: Int {
-    currentEventAttendee?.attendanceStatus ?? model.eventsAttendanceStatus
-  }
-  
-  init(event: Event, currentUserId: UUID) {
-    _model = State(wrappedValue: EventRowModel(event: event))
-    self.event = event
-    self.currentUserId = currentUserId
-  }
   var body: some View {
     VStack {
       ZStack {
@@ -97,22 +34,22 @@ struct EventRowView: View {
               router.push(.eventDetail(event: event))
             }
           } label: {
-            TitleView
+            titleView
           }
           
-          TimeSection
+          timeSection
           
           HStack {
-            if let currentEventAttendee, attendanceStatus == 1 {
+            if let currentEventAttendee, currentEventAttendee.attendanceStatus == 1 {
               AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteAccepted, image: "checkmark.circle.fill", text: "amStizzle!")
-            } else if let currentEventAttendee, attendanceStatus == 2 {
+            } else if let currentEventAttendee, currentEventAttendee.attendanceStatus == 2 {
               AttendanceView(currentEventAttendee: currentEventAttendee, eventAttendees: eventAttendees, invitationState: .inviteDeclined, image: "xmark.circle.fill", text: "You declined")
             } else {
               ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
-                await updateAttendanceStatus(to: 2)
+                onTapAcceptButton()
               }
               ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
-                await updateAttendanceStatus(to: 1)
+                onTapDeclineButton()
               }
             }
           }
@@ -124,14 +61,14 @@ struct EventRowView: View {
       .frame(height: 270)
       .containerShape(.rect(cornerRadius: 60))
     }
-    .task(id: currentUserId) {
-      await model.loadCurrentAttendee()
-      await loadEventAttendees()
-    }
+//    .task(id: currentUserId) {
+//      await model.loadCurrentAttendee()
+//      await loadEventAttendees()
+//    }
     //    .padding()
   }
   
-  var TitleView: some View {
+  var titleView: some View {
     ZStack(alignment: .bottomLeading) {
       ConcentricRectangle()
         .fill(Color.blue.opacity(0.5))
@@ -149,7 +86,7 @@ struct EventRowView: View {
     .frame(height: 70)
   }
   
-  var TimeSection: some View {
+  var timeSection: some View {
     ZStack(alignment: .leading) {
       Rectangle()
         .fill(Color.gray.opacity(0.2))
@@ -186,112 +123,86 @@ struct EventRowView: View {
       .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
       .padding()
     }
-    //    .padding(.vertical, 6)
   }
   
-//  func loadCurrentAttendee() async {
+//#warning("join Profiles to get usernames")
+//  func loadEventAttendees() async {
 //    do {
-//      let currentEventAttendee: EventAttendee =
+//      let fetchedEventAttendees: [EventAttendee] =
 //      try await Supabase.shared
 //        .from("event_attendees")
-//        .select()
-//        .eq("profile_id", value: currentUserId)
+//        .select(
+//          """
+//            id,
+//            event_id,
+//            profile_id,
+//            profiles ( id, username )
+//            attendance_status,
+//            created_at,
+//            updated_at,
+//          
+//          """
+//        )
+////        .eq("profile_id", value: "id")
 //        .eq("event_id", value: event.id)
-//        .single()
 //        .execute()
 //        .value
 //      
-////      logger.info("currentEventAttendeeId: \(currentEventAttendee.profileId?.uuidString ?? "no profileId")")
+//      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
+//      logger.info("EventAttendees: \(eventAttendees.count)")
 //      
-//      self.currentEventAttendee = currentEventAttendee
-//      model.eventsAttendanceStatus = currentEventAttendee.attendanceStatus ?? -1
-//      logger.info("event: \(event.title ?? "no title"), attendanceStatus: \(model.eventsAttendanceStatus)")
-//      //      await loadInvitedEvents()
+//      self.eventAttendees = fetchedEventAttendees
+//      
 //    } catch {
 //      logger.error("\(error)")
-//      currentEventAttendee = nil
-//      model.eventsAttendanceStatus = -1
 //    }
 //  }
   
-#warning("join Profiles to get usernames")
-  func loadEventAttendees() async {
-    do {
-      let fetchedEventAttendees: [EventAttendee] =
-      try await Supabase.shared
-        .from("event_attendees")
-        .select(
-          """
-            id,
-            event_id,
-            profile_id,
-            profiles ( id, username )
-            attendance_status,
-            created_at,
-            updated_at,
-          
-          """
-        )
-//        .eq("profile_id", value: "id")
-        .eq("event_id", value: event.id)
-        .execute()
-        .value
-      
-      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
-      logger.info("EventAttendees: \(eventAttendees.count)")
-      
-      self.eventAttendees = fetchedEventAttendees
-      
-    } catch {
-      logger.error("\(error)")
-    }
-  }
-  
   func updateAttendanceStatus(to newStatus: Int) async {
-    let previousAttendee = currentEventAttendee
-    let previousEventAttendees = eventAttendees
-    
-    if let currentEventAttendee {
-      let updatedAttendee = EventAttendee(
-        id: currentEventAttendee.id,
-        eventId: currentEventAttendee.eventId,
-        profileId: currentEventAttendee.profileId!,
-        username: currentEventAttendee.username,
-        attendanceStatus: newStatus,
-        createdAt: currentEventAttendee.createdAt,
-        updatedAt: Date.now
-      )
-      self.currentEventAttendee = updatedAttendee
-      replaceAttendee(updatedAttendee)
-    }
-    
-    model.eventsAttendanceStatus = newStatus
-    
-    do {
-      try await Supabase.shared
-        .from("event_attendees")
-        .update(["attendance_status" : newStatus])
-        .eq("profile_id", value: currentUserId)
-        .eq("event_id", value: event.id)
-        .execute()
-      logger.info("AttendanceStatus set to \(newStatus)")
-      
-      await model.loadCurrentAttendee()
-      await loadEventAttendees()
-    } catch {
-      logger.error("\(error.localizedDescription)")
-      currentEventAttendee = previousAttendee
-      eventAttendees = previousEventAttendees
-      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
-    }
+//    let previousAttendee = currentEventAttendee
+//    let previousEventAttendees = eventAttendees
+//    
+//    if let currentEventAttendee {
+//      let updatedAttendee = EventAttendee(
+//        id: currentEventAttendee.id,
+//        eventId: currentEventAttendee.eventId,
+//        profileId: currentEventAttendee.profileId!,
+//        username: currentEventAttendee.username,
+//        attendanceStatus: newStatus,
+//        createdAt: currentEventAttendee.createdAt,
+//        updatedAt: Date.now
+//      )
+//      self.currentEventAttendee = updatedAttendee
+//      replaceAttendee(updatedAttendee)
+//    }
+//    
+//    model.eventsAttendanceStatus = newStatus
+//    
+//    do {
+//      try await Supabase.shared
+//        .from("event_attendees")
+//        .update(["attendance_status" : newStatus])
+//        .eq("profile_id", value: currentUserId)
+//        .eq("event_id", value: event.id)
+//        .execute()
+//      logger.info("AttendanceStatus set to \(newStatus)")
+//      
+//      await model.loadCurrentAttendee()
+//      await loadEventAttendees()
+//    } catch {
+//      logger.error("\(error.localizedDescription)")
+//      currentEventAttendee = previousAttendee
+//      eventAttendees = previousEventAttendees
+//      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
+//    }
   }
   
   private func replaceAttendee(_ updatedAttendee: EventAttendee) {
-    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
-      eventAttendees[index] = updatedAttendee
-    } else {
-      eventAttendees.append(updatedAttendee)
-    }
+//    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
+//      eventAttendees[index] = updatedAttendee
+//    } else {
+//      eventAttendees.append(updatedAttendee)
+//    }
   }
 }
 
@@ -351,6 +262,7 @@ struct AttendanceView: View {
     case inviteAccepted
     case inviteDeclined
   }
+  
   var backgroundColor: Color {
     switch invitationState {
     case .inviteAccepted:

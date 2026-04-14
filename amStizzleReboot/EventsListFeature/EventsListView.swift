@@ -9,15 +9,72 @@ import os
 import SwiftUI
 import Supabase
 
+@Observable
+final class EventsListViewModel {
+  private let repository: SupabaseRepository
+  private let logger = Logger(subsystem: "amStizzleReboot", category: "EventsListViewModel")
+  
+  private(set) var events: [Event] = []
+  private(set) var avatarImage: AvatarImage?
+  
+  private var currentUserID: UUID?
+  private var eventAttendees: [EventAttendee] = []
+  
+  init(repository: SupabaseRepository = .shared) {
+    self.repository = repository
+  }
+  
+  func eventAttendees(forEventID eventID: Event.ID) -> [EventAttendee] {
+    eventAttendees.filter { $0.id == eventID }
+  }
+  
+  func eventAttendee(forEventID eventID: Event.ID) -> EventAttendee? {
+    eventAttendees
+      .first {
+        $0.id == eventID && currentUserID == $0.profileId
+      }
+  }
+  
+  func onAccept(forEventID eventID: Event.ID) {
+    
+  }
+  
+  func onDecline(forEventID eventID: Event.ID) {
+    
+  }
+  
+  func loadData() async {
+    do {
+      let currentUserID = try await repository.getCurrentUserId()
+      
+      self.events = try await Supabase.shared
+        .from("events")
+        .select("*, event_attendees!inner(*)")
+        .eq("event_attendees.profile_id", value: currentUserID)
+        .order("start_date", ascending: true)
+        .execute()
+        .value
+      
+      logger.info("InvitedEventsCount: \(self.events.count)")
+      
+      self.avatarImage = try await repository.getAvatarImage()
+      
+    } catch {
+      logger.error("\(error)")
+    }
+  }
+}
+
 struct EventsListView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "EventsListView")
   @State var router = AppRouter()
+  @State private var viewModel = EventsListViewModel()
   
   @State var currentUserId: UUID?
   
   @State var avatarImage: AvatarImage?
-  @State private var userEvents: [Event] = []
-  @State var invitedEvents: [Event] = []
+//  @State private var userEvents: [Event] = []
+//  @State var invitedEvents: [Event] = []
   
 #if DEBUG
   @State private var allEvents: [Event] = []
@@ -30,7 +87,7 @@ struct EventsListView: View {
   var body: some View {
     NavigationStack(path: $router.path) {
       ScrollView {
-        if invitedEvents.isEmpty {
+        if viewModel.events.isEmpty {
           VStack {
             ProgressView()
               .scaleEffect(2)
@@ -39,16 +96,26 @@ struct EventsListView: View {
           }
           .frame(height: 200)
         } else {
-          ForEach(invitedEvents, id: \.id) { event in
-            EventRowView(/*model: EventRowModel(), */event: event, currentUserId: currentUserId ?? UUID())
-              .padding()
+          ForEach(viewModel.events) { event in
+            EventRowView(
+              event: event,
+              eventAttendees: viewModel.eventAttendees(forEventID: event.id),
+              currentEventAttendee: viewModel.eventAttendee(forEventID: event.id),
+              onTapAcceptButton: {
+                viewModel.onAccept(forEventID: event.id)
+              },
+              onTapDeclineButton: {
+                viewModel.onDecline(forEventID: event.id)
+              }
+            )
+            .padding()
           }
         }
 //        .onDelete(perform: deleteUserEvents)
 //#warning("Delete doesn't work in ScrollView")
       }
       .refreshable {
-        await loadEvents()
+        await viewModel.loadData()
       }
       .navigationTitle("Events")
       .toolbar {
@@ -126,46 +193,6 @@ struct EventsListView: View {
     }
   }
   
-  private func loadEvents() async {
-    do {
-      let currentUser = try await Supabase.shared.auth.session.user
-      
-      let usersFetchedEvents: [Event] =
-      try await Supabase.shared
-        .from("events")
-        .select()
-        .eq("creator_id", value: currentUser.id)
-        .execute()
-        .value
-      
-      logger.info("MyEventsCount: \(usersFetchedEvents.count)")
-      
-      userEvents = usersFetchedEvents
-//      await loadInvitedEvents()
-    } catch {
-      logger.error("\(error)")
-    }
-    
-    do {
-      let currentUser = try await Supabase.shared.auth.session.user
-      
-      let fetchedInvitedEvents: [Event] =
-      try await Supabase.shared
-        .from("events")
-        .select("*, event_attendees!inner(*)")
-        .eq("event_attendees.profile_id", value: currentUser.id)
-        .order("start_date", ascending: true)
-//        .neq("creator_id", value: currentUser.id)
-        .execute()
-        .value
-      
-      logger.info("InvitedEventsCount: \(fetchedInvitedEvents.count)")
-      
-      invitedEvents = fetchedInvitedEvents
-    } catch {
-      logger.error("\(error)")
-    }
-  }
   
 //  private func deleteUserEvents(event: Event) {
 //    Task {
