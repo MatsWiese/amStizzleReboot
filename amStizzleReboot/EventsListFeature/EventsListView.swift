@@ -49,6 +49,8 @@ final class EventsListViewModel {
   func loadData() async {
     do {
       let currentUserID = try await repository.getCurrentUserId()
+      
+      logger.info("ELVM: fn loadData: currentUserID: \(currentUserID)")
 
       self.events = try await Supabase.shared
         .from("events")
@@ -61,15 +63,32 @@ final class EventsListViewModel {
       self.eventAttendees = try await Supabase.shared
         .from("event_attendees")
         .select()
+//        .select(
+//                  """
+//                    id,
+//                    event_id,
+//                    profile_id,
+//                    profiles ( id, username )
+//                    attendance_status,
+//                    created_at,
+//                    updated_at,
+//                  
+//                  """
+//                )
+        //        .eq("profile_id", value: "id")
+        //        .eq("event_id", value: event.id)
         .execute()
         .value
 
+//      logger.info("Events: \(self.events)")
+      logger.info("EventAttendees: \(self.eventAttendees)")
       logger.info("EventsCount: \(self.events.count)")
 
       self.avatarImage = try await repository.getCurrentUserAvatarImage()
     } catch {
       logger.error("\(error)")
     }
+    logger.info("loadData \(self.currentUserID?.uuidString ?? "No currentUserID")")
   }
 }
 
@@ -78,7 +97,7 @@ struct EventsListView: View {
   @State var router = AppRouter()
   @State private var viewModel = EventsListViewModel()
 
-  @State var currentUserId: UUID?
+//  @State var currentUserID: UUID?
 
   @State var avatarImage: AvatarImage?
 
@@ -86,7 +105,7 @@ struct EventsListView: View {
   @State private var allEvents: [Event] = []
 #endif
 
-  @State var showAccountSheet = false
+  @State var showProfileView = false
 
   var body: some View {
     NavigationStack(path: $router.path) {
@@ -137,7 +156,7 @@ struct EventsListView: View {
         }
         ToolbarItem(placement: .topBarLeading) {
           Button {
-            showAccountSheet = true
+            showProfileView = true
           } label: {
             if let avatarImage {
               avatarImage.image
@@ -152,12 +171,7 @@ struct EventsListView: View {
         }
       }
       .navigationDestination(for: Destination.self, destination: \.view)
-      //      .sheet(isPresented: $isNewEventSheetPresented) {
-      //        NavigationStack {
-      //          CreateEventSheet()
-      //        }
-      //      }
-      .sheet(isPresented: $showAccountSheet) {
+      .sheet(isPresented: $showProfileView) {
         NavigationStack {
           ProfileView()
         }

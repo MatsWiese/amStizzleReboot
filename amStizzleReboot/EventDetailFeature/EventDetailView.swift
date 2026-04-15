@@ -96,7 +96,7 @@ import Dependencies
     do {
       let currentUser = try await Supabase.shared.auth.session.user
       
-      logger.info("Current user: \(currentUser.id)")
+      logger.info("EventDetailModel: CurrentUserID: \(currentUser.id)")
       
       let profile: Profile =
       try await Supabase.shared
@@ -116,7 +116,7 @@ import Dependencies
   
   func reloadCurrentAttendeeData() async {
     do {
-      logger.info("Current profileId: \(self.currentProfile.id)")
+      logger.info("EventDetailView: CurrentProfileId: \(self.currentProfile.id)")
       
       let eventAttendee: EventAttendee =
       try await Supabase.shared

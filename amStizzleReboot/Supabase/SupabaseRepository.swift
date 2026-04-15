@@ -33,7 +33,7 @@ final class SupabaseRepository {
   
   func getCurrentUserId() async throws -> UUID {
     let id = try await client.auth.session.user.id
-    logger.info("Current user: \(id)")
+    logger.info("SupabaseRepository: Current user: \(id)")
     return id
   }
 
@@ -62,5 +62,7 @@ final class SupabaseRepository {
       .eq("profile_id", value: currentUserID)
       .eq("event_id", value: eventID)
       .execute()
+    
+    logger.info("Set AttendenceStatus to \(newAttendenceStatus)")
   }
 }

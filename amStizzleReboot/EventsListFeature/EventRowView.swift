@@ -58,10 +58,10 @@ struct EventRowView: View {
               )
             } else {
               ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
-                onTapAcceptButton()
+                onTapDeclineButton()
               }
               ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
-                onTapDeclineButton()
+                onTapAcceptButton()
               }
             }
           }
@@ -70,6 +70,9 @@ struct EventRowView: View {
       }
       .frame(height: 270)
       .containerShape(.rect(cornerRadius: 60))
+    }
+    .onAppear {
+      logger.info("EventRowView(onAppear): CurrentEventAttendeeID: \(currentEventAttendee?.profileId?.uuidString ?? "No EventAttendee")")
     }
   }
     
@@ -259,7 +262,7 @@ struct ButtonView: View {
 }
 //
 struct AttendanceView: View {
-  let logger = Logger(subsystem: "amStizzleReboot", category: "AttendanceView")
+  private let logger = Logger(subsystem: "amStizzleReboot", category: "AttendanceView")
   
   @State private var showAttendeeList = false
   
