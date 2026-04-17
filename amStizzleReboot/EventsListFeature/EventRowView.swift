@@ -75,143 +75,63 @@ struct EventRowView: View {
       logger.info("EventRowView(onAppear): CurrentEventAttendeeID: \(currentEventAttendee?.profileId?.uuidString ?? "No EventAttendee")")
     }
   }
-    
-    var titleView: some View {
-      ZStack(alignment: .bottomLeading) {
-        ConcentricRectangle()
-          .fill(Color.blue.opacity(0.5))
-          .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
-          .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-        Text(event.title ?? "Unknown Title")
-          .minimumScaleFactor(0.5)
-          .foregroundStyle(Color.primary)
-          .font(.largeTitle)
-          .fontWeight(.bold)
-          .padding()
-          .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-          .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-      }
-      .frame(height: 70)
-    }
-    
-    var timeSection: some View {
-      ZStack(alignment: .leading) {
-        Rectangle()
-          .fill(Color.gray.opacity(0.2))
-          .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
-          .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-        HStack {
-          Text(event.startDate?
-            .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
-          .minimumScaleFactor(0.5)
-          .font(.title)
-          .fontWeight(.bold)
-          .fontDesign(.rounded)
-          .foregroundStyle(Color.primary)
-          
-          Spacer()
-          HStack {
-            VStack(alignment: .trailing) {
-              Text("From:")
-              Text("to:")
-            }
-            .font(.headline)
-            .fontDesign(.monospaced)
-            
-            VStack(alignment: .leading) {
-              Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
-              Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
-            }
-            .minimumScaleFactor(0.8)
-            .fontWeight(.black)
-          }
-          .font(.title2)
-        }
+  
+  var titleView: some View {
+    ZStack(alignment: .bottomLeading) {
+      ConcentricRectangle()
+        .fill(Color.blue.opacity(0.5))
+        .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
+        .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
+      Text(event.title ?? "Unknown Title")
+        .minimumScaleFactor(0.5)
+        .foregroundStyle(Color.primary)
+        .font(.largeTitle)
+        .fontWeight(.bold)
+        .padding()
         .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
         .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-        .padding()
-      }
     }
+    .frame(height: 70)
+  }
   
-  //#warning("join Profiles to get usernames")
-  //  func loadEventAttendees() async {
-  //    do {
-  //      let fetchedEventAttendees: [EventAttendee] =
-  //      try await Supabase.shared
-  //        .from("event_attendees")
-  //        .select(
-  //          """
-  //            id,
-  //            event_id,
-  //            profile_id,
-  //            profiles ( id, username )
-  //            attendance_status,
-  //            created_at,
-  //            updated_at,
-  //
-  //          """
-  //        )
-  //        .eq("profile_id", value: "id")
-  //        .eq("event_id", value: event.id)
-  //        .execute()
-  //        .value
-  //
-  //      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
-  //      logger.info("EventAttendees: \(eventAttendees.count)")
-  //
-  //      self.eventAttendees = fetchedEventAttendees
-  //
-  //    } catch {
-  //      logger.error("\(error)")
-  //    }
-  //  }
-  //
-  //  func updateAttendanceStatus(to newStatus: Int) async {
-  //    let previousAttendee = currentEventAttendee
-  //    let previousEventAttendees = eventAttendees
-  //
-  //    if let currentEventAttendee {
-  //      let updatedAttendee = EventAttendee(
-  //        id: currentEventAttendee.id,
-  //        eventId: currentEventAttendee.eventId,
-  //        profileId: currentEventAttendee.profileId!,
-  //        username: currentEventAttendee.username,
-  //        attendanceStatus: newStatus,
-  //        createdAt: currentEventAttendee.createdAt,
-  //        updatedAt: Date.now
-  //      )
-  //      self.currentEventAttendee = updatedAttendee
-  //      replaceAttendee(updatedAttendee)
-  //    }
-  //
-  //    model.eventsAttendanceStatus = newStatus
-  //
-  //    do {
-  //      try await Supabase.shared
-  //        .from("event_attendees")
-  //        .update(["attendance_status" : newStatus])
-  //        .eq("profile_id", value: currentUserId)
-  //        .eq("event_id", value: event.id)
-  //        .execute()
-  //      logger.info("AttendanceStatus set to \(newStatus)")
-  //
-  //      await model.loadCurrentAttendee()
-  //      await loadEventAttendees()
-  //    } catch {
-  //      logger.error("\(error.localizedDescription)")
-  //      currentEventAttendee = previousAttendee
-  //      eventAttendees = previousEventAttendees
-  //      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
-  //    }
-  //  }
-  //
-  //  private func replaceAttendee(_ updatedAttendee: EventAttendee) {
-  //    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
-  //      eventAttendees[index] = updatedAttendee
-  //    } else {
-  //      eventAttendees.append(updatedAttendee)
-  //    }
-  //  }
+  var timeSection: some View {
+    ZStack(alignment: .leading) {
+      Rectangle()
+        .fill(Color.gray.opacity(0.2))
+        .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
+        .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
+      HStack {
+        Text(event.startDate?
+          .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
+        .minimumScaleFactor(0.5)
+        .font(.title)
+        .fontWeight(.bold)
+        .fontDesign(.rounded)
+        .foregroundStyle(Color.primary)
+        
+        Spacer()
+        HStack {
+          VStack(alignment: .trailing) {
+            Text("From:")
+            Text("to:")
+          }
+          .font(.headline)
+          .fontDesign(.monospaced)
+          
+          VStack(alignment: .leading) {
+            Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+            Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+          }
+          .minimumScaleFactor(0.8)
+          .fontWeight(.black)
+        }
+        .font(.title2)
+      }
+      .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+      .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+      .padding()
+    }
+  }
 }
 
 struct ButtonView: View {
@@ -294,83 +214,135 @@ struct AttendanceView: View {
           .shadow(.inner(color: .black.opacity(0.7), radius: 1, x: 4, y: 4))
         )
       VStack(alignment: .leading) {
-        Text(text)
-          .minimumScaleFactor(0.5)
-          .foregroundStyle(Color.primary)
-          .font(.title2)
-          .fontWeight(.bold)
-          .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-          .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
         if showAttendeeList {
           VStack(alignment: .leading) {
-            Text("Attending:")
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
-              Text(attendee.username ?? "0")
+            if (eventAttendees.filter { $0.attendanceStatus == 1 }).count > 0 {
+              Text("Attending:")
+                .font(.caption)
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
+                if attendee.id == currentEventAttendee.id {
+                  HStack {
+                    Text(attendee.username ?? "N/A")
+                    Spacer()
+                    Button {
+                      // TODO: Deline-Logic
+                    } label: {
+                      ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                          .fill(.red)
+                        Image(systemName: "xmark")
+                          .font(.body)
+                          .fontWeight(.heavy)
+                      }
+                      .frame(width: 40)
+                      .foregroundStyle(.white)
+                    }
+                    .padding(.trailing, 10)
+//                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.roundedRectangle)
+                  }
+                } else {
+                  Text(attendee.username ?? "N/A")
+                }
+              }
             }
-            Text("Not Attending:")
-            
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
-              Text(attendee.username ?? "0")
+            if (eventAttendees.filter { $0.attendanceStatus == 2 }).count > 0 {
+              Text("Not Attending:")
+                .font(.caption)
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+                if attendee.id == currentEventAttendee.id {
+                  HStack {
+                    Text(attendee.username ?? "N/A")
+                    Spacer()
+                    Button {
+                      // TODO: Deline-Logic
+                    } label: {
+                      ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                          .fill(.green)
+                        Image(systemName: "checkmark")
+                          .font(.body)
+                          .fontWeight(.heavy)
+                      }
+                      .frame(width: 40)
+                      .foregroundStyle(.white)
+                    }
+                    .padding(.trailing, 10)
+//                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.roundedRectangle)
+                    
+                  }
+                } else {
+                  Text(attendee.username ?? "N/A")
+                }
+
+//                Text(attendee.username ?? "0")
+              }
             }
-            Text("Invited:")
-            HStack {
-              ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
-                Text(attendee.username ?? "0")
+            if (eventAttendees.filter { $0.attendanceStatus == 0 }).count > 0 {
+              Text("Invited:")
+                .font(.caption)
+              HStack {
+                ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
+                  Text(attendee.username ?? "0")
+                }
               }
             }
           }
         } else {
-          HStack(spacing: -6) {
+          Text(text)
+            .minimumScaleFactor(0.5)
+            .foregroundStyle(Color.primary)
+            .font(.title2)
+            .fontWeight(.bold)
+            .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+            .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+          
+          HStack(spacing: -1) {
             ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
-#warning("implement circles with usernames after joined fetch")
-              //            ZStack {
-              //              Circle()
-              //                .fill(Color.gray)
-              //              HStack {
-              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-              //              }
-              //              .fontWeight(.bold)
-              //              .fontDesign(.rounded)
-              //              .foregroundStyle(Color.white)
-              //              .fontWidth(.compressed)
-              //            }
-              Image(systemName: "person.circle")
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
-                .font(.title2)
+              ZStack {
+                Circle()
+                  .fill(Color.gray)
+                  .stroke(.primary, lineWidth: 2)
+                HStack {
+                  Text(attendee.username?.first!.uppercased() ?? "N/A")
+                }
                 .fontWeight(.bold)
-                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+                .fontDesign(.rounded)
+                .foregroundStyle(Color.white)
+                .fontWidth(.compressed)
+                .padding(2)
+              }
+              .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
+              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
             }
             Spacer()
             ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
-#warning("implement circles with usernames after joined fetch")
-              //            ZStack {
-              //              Circle()
-              //                .fill(Color.gray)
-              //              HStack {
-              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-              //              }
-              //              .fontWeight(.bold)
-              //              .fontDesign(.rounded)
-              //              .foregroundStyle(Color.white)
-              //              .fontWidth(.compressed)
-              //            }
-              Image(systemName: "person.circle")
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
-                .font(.title2)
+              ZStack {
+                Circle()
+                  .fill(Color.gray)
+                  .stroke(.primary, lineWidth: 2)
+                HStack {
+                  Text(attendee.username?.first!.uppercased() ?? "N/A")
+                }
                 .fontWeight(.bold)
-                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+                .fontDesign(.rounded)
+                .foregroundStyle(Color.white)
+                .fontWidth(.compressed)
+                .padding(2)
+              }
+              .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
+              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
             }
           }
         }
       }
-      .onTapGesture {
-        showAttendeeList.toggle()
-      }
       .padding()
+    }
+    .onTapGesture {
+      showAttendeeList.toggle()
     }
   }
 }

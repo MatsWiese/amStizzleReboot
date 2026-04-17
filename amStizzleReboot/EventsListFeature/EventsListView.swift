@@ -62,25 +62,6 @@ final class EventsListViewModel {
         .value
 
       self.eventAttendees = await repository.getEventAttendeesWithUsernames()
-//      self.eventAttendees = try await Supabase.shared
-//        .from("event_attendees")
-//        .select()
-////        .select(
-////                  """
-////                    id,
-////                    event_id,
-////                    profile_id,
-////                    profiles ( id, username )
-////                    attendance_status,
-////                    created_at,
-////                    updated_at,
-////                  
-////                  """
-////                )
-//        //        .eq("profile_id", value: "id")
-//        //        .eq("event_id", value: event.id)
-//        .execute()
-//        .value
 
 //      logger.info("Events: \(self.events)")
       logger.info("EventAttendees: \(self.eventAttendees)")
