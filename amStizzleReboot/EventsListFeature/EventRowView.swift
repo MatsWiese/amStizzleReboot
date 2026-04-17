@@ -13,6 +13,9 @@ struct EventRowView: View {
   @Environment(\.colorScheme) private var colorScheme
   @Environment(AppRouter.self) private var router
   private let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
+  @State private var isShowingTimeframeOverlay = false
+  @State private var draftStartDate = Date.now
+  @State private var draftEndDate = Date.now.addingTimeInterval(3600)
   
   let event: Event
   let eventAttendees: [EventAttendee]
@@ -72,7 +75,31 @@ struct EventRowView: View {
       .containerShape(.rect(cornerRadius: 60))
     }
     .onAppear {
-      logger.info("EventRowView(onAppear): CurrentEventAttendeeID: \(currentEventAttendee?.profileId?.uuidString ?? "No EventAttendee")")
+        syncTimeframeDraft()
+        logger.info("EventRowView(onAppear) - CurrentEventAttendeeID: \(currentEventAttendee?.profileId?.uuidString ?? "No EventAttendee")")
+    }
+    .overlay {
+      if isShowingTimeframeOverlay {
+        ZStack {
+          Color.black.opacity(0.35)
+            .ignoresSafeArea()
+            .onTapGesture {
+              isShowingTimeframeOverlay = false
+            }
+
+          VStack(alignment: .trailing, spacing: 12) {
+            Button("Done") {
+              isShowingTimeframeOverlay = false
+            }
+            .font(.headline)
+
+            EventTimeframeView(startTime: $draftStartDate, endTime: $draftEndDate)
+          }
+          .padding(20)
+          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+          .padding(.horizontal, 24)
+        }
+      }
     }
   }
     
@@ -94,21 +121,45 @@ struct EventRowView: View {
       .frame(height: 70)
     }
     
-    var timeSection: some View {
+  var timeSection: some View {
+    Button {
+      if currentEventAttendee?.profileId == event.creatorId {
+        syncTimeframeDraft()
+        isShowingTimeframeOverlay = true
+      }
+    } label: {
       ZStack(alignment: .leading) {
         Rectangle()
           .fill(Color.gray.opacity(0.2))
           .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
           .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
         HStack {
-          Text(event.startDate?
-            .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
-          .minimumScaleFactor(0.5)
-          .font(.title)
-          .fontWeight(.bold)
-          .fontDesign(.rounded)
-          .foregroundStyle(Color.primary)
-          
+          VStack(alignment: .leading) {
+            Text(event.startDate?
+              .formatted(date: .abbreviated, time: .omitted) ?? "N/A")
+            .minimumScaleFactor(0.5)
+            .font(.title)
+            .fontWeight(.bold)
+            .fontDesign(.rounded)
+            .foregroundStyle(Color.primary)
+            
+            if let startDate = event.startDate,
+               let endDate = event.endDate,
+               !Calendar.current.isDate(startDate, inSameDayAs: endDate) {
+              HStack(alignment: .lastTextBaseline, spacing: 3) {
+                Text("until")
+                  .minimumScaleFactor(0.5)
+                  .font(.caption2)
+                  .foregroundStyle(Color.primary)
+                Text(endDate.formatted(date: .abbreviated, time: .omitted))
+                  .minimumScaleFactor(0.5)
+                  .font(.title)
+                  .fontWeight(.bold)
+                  .fontDesign(.rounded)
+                  .foregroundStyle(Color.primary)
+              }
+            }
+          }
           Spacer()
           HStack {
             VStack(alignment: .trailing) {
@@ -119,7 +170,7 @@ struct EventRowView: View {
             .fontDesign(.monospaced)
             
             VStack(alignment: .leading) {
-              Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+              Text(event.startDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
               Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
             }
             .minimumScaleFactor(0.8)
@@ -132,7 +183,15 @@ struct EventRowView: View {
         .padding()
       }
     }
-  
+    .buttonStyle(.plain)
+    .disabled(!canEditTimeframe)
+  }
+
+  private func syncTimeframeDraft() {
+    let startDate = event.startDate ?? Date.now
+    draftStartDate = startDate
+    draftEndDate = event.endDate ?? startDate.addingTimeInterval(3600)
+  }
   //#warning("join Profiles to get usernames")
   //  func loadEventAttendees() async {
   //    do {
