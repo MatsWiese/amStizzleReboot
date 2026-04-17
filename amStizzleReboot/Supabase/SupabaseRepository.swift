@@ -65,4 +65,29 @@ final class SupabaseRepository {
     
     logger.info("Set AttendenceStatus to \(newAttendenceStatus)")
   }
+  
+  func getEventAttendeesWithUsernames() async -> [EventAttendee] {
+    do {
+      let response: [EventAttendee] = try await Supabase.shared
+        .from("event_attendees")
+        .select(
+                  """
+                    id,
+                    event_id,
+                    profile_id,
+                    profiles(username),
+                    attendance_status,
+                    created_at,
+                    updated_at
+                  """
+        )
+        .execute()
+        .value
+      
+      return response
+    } catch {
+      print(error)
+      return []
+    }
+  }
 }

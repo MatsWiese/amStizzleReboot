@@ -34,7 +34,7 @@ struct EventAttendee: Codable, Identifiable {
     self.attendanceStatus = try container.decodeIfPresent(Int.self, forKey: .attendanceStatus)
     self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
     self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
-    self.username = try container.decodeIfPresent(Profile.self, forKey: .profile)?.username
+    self.username = try container.decodeIfPresent(Profile.self, forKey: .profiles)?.username
   }
   
   func encode(to encoder: any Encoder) throws {
@@ -55,11 +55,10 @@ struct EventAttendee: Codable, Identifiable {
     case attendanceStatus = "attendance_status"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
-    case profile = "profile"
+    case profiles = "profiles"
   }
   
   struct Profile: Decodable {
-    let id: UUID
     let username: String
   }
 }
