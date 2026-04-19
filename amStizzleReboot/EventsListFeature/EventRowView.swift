@@ -184,7 +184,7 @@ struct EventRowView: View {
       }
     }
     .buttonStyle(.plain)
-    .disabled(!canEditTimeframe)
+//    .disabled(!canEditTimeframe)
   }
 
   private func syncTimeframeDraft() {
@@ -192,85 +192,6 @@ struct EventRowView: View {
     draftStartDate = startDate
     draftEndDate = event.endDate ?? startDate.addingTimeInterval(3600)
   }
-  //#warning("join Profiles to get usernames")
-  //  func loadEventAttendees() async {
-  //    do {
-  //      let fetchedEventAttendees: [EventAttendee] =
-  //      try await Supabase.shared
-  //        .from("event_attendees")
-  //        .select(
-  //          """
-  //            id,
-  //            event_id,
-  //            profile_id,
-  //            profiles ( id, username )
-  //            attendance_status,
-  //            created_at,
-  //            updated_at,
-  //
-  //          """
-  //        )
-  //        .eq("profile_id", value: "id")
-  //        .eq("event_id", value: event.id)
-  //        .execute()
-  //        .value
-  //
-  //      logger.info("Event: \(event.title ?? "no event title"), EventAttendeesCount: \(fetchedEventAttendees.count)")
-  //      logger.info("EventAttendees: \(eventAttendees.count)")
-  //
-  //      self.eventAttendees = fetchedEventAttendees
-  //
-  //    } catch {
-  //      logger.error("\(error)")
-  //    }
-  //  }
-  //
-  //  func updateAttendanceStatus(to newStatus: Int) async {
-  //    let previousAttendee = currentEventAttendee
-  //    let previousEventAttendees = eventAttendees
-  //
-  //    if let currentEventAttendee {
-  //      let updatedAttendee = EventAttendee(
-  //        id: currentEventAttendee.id,
-  //        eventId: currentEventAttendee.eventId,
-  //        profileId: currentEventAttendee.profileId!,
-  //        username: currentEventAttendee.username,
-  //        attendanceStatus: newStatus,
-  //        createdAt: currentEventAttendee.createdAt,
-  //        updatedAt: Date.now
-  //      )
-  //      self.currentEventAttendee = updatedAttendee
-  //      replaceAttendee(updatedAttendee)
-  //    }
-  //
-  //    model.eventsAttendanceStatus = newStatus
-  //
-  //    do {
-  //      try await Supabase.shared
-  //        .from("event_attendees")
-  //        .update(["attendance_status" : newStatus])
-  //        .eq("profile_id", value: currentUserId)
-  //        .eq("event_id", value: event.id)
-  //        .execute()
-  //      logger.info("AttendanceStatus set to \(newStatus)")
-  //
-  //      await model.loadCurrentAttendee()
-  //      await loadEventAttendees()
-  //    } catch {
-  //      logger.error("\(error.localizedDescription)")
-  //      currentEventAttendee = previousAttendee
-  //      eventAttendees = previousEventAttendees
-  //      model.eventsAttendanceStatus = previousAttendee?.attendanceStatus ?? -1
-  //    }
-  //  }
-  //
-  //  private func replaceAttendee(_ updatedAttendee: EventAttendee) {
-  //    if let index = eventAttendees.firstIndex(where: { $0.id == updatedAttendee.id }) {
-  //      eventAttendees[index] = updatedAttendee
-  //    } else {
-  //      eventAttendees.append(updatedAttendee)
-  //    }
-  //  }
 }
 
 struct ButtonView: View {
@@ -371,65 +292,107 @@ struct AttendanceView: View {
             ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
               Text(attendee.username ?? "0")
             }
-            Text("Invited:")
-            HStack {
-              ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
-                Text(attendee.username ?? "0")
+            if (eventAttendees.filter { $0.attendanceStatus == 2 }).count > 0 {
+              Text("Not Attending:")
+                .font(.caption)
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+                if attendee.id == currentEventAttendee.id {
+                  HStack {
+                    Text(attendee.username ?? "N/A")
+                    Spacer()
+                    Button {
+                      // TODO: Accept-Logic
+                    } label: {
+                      ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                          .fill(.green)
+                        Image(systemName: "checkmark")
+                          .font(.body)
+                          .fontWeight(.heavy)
+                      }
+                      .frame(width: 40)
+                      .foregroundStyle(.white)
+                    }
+                    .padding(.trailing, 10)
+                    //                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.roundedRectangle)
+                    
+                  }
+                } else {
+                  Text(attendee.username ?? "N/A")
+                }
+                
+                //                Text(attendee.username ?? "0")
+              }
+            }
+            if (eventAttendees.filter { $0.attendanceStatus == 0 }).count > 0 {
+              Text("Invited:")
+                .font(.caption)
+              HStack {
+                ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
+                  Text(attendee.username ?? "N/A")
+                }
+                Text("Invited:")
+                HStack {
+                  ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
+                    Text(attendee.username ?? "0")
+                  }
+                }
+              }
+            } else {
+              HStack(spacing: -6) {
+                ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
+#warning("implement circles with usernames after joined fetch")
+                  //            ZStack {
+                  //              Circle()
+                  //                .fill(Color.gray)
+                  //              HStack {
+                  //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
+                  //              }
+                  //              .fontWeight(.bold)
+                  //              .fontDesign(.rounded)
+                  //              .foregroundStyle(Color.white)
+                  //              .fontWidth(.compressed)
+                  //            }
+                  Image(systemName: "person.circle")
+                    .minimumScaleFactor(0.5)
+                    .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+                    .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+                }
+                Spacer()
+                ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+#warning("implement circles with usernames after joined fetch")
+                  //            ZStack {
+                  //              Circle()
+                  //                .fill(Color.gray)
+                  //              HStack {
+                  //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
+                  //              }
+                  //              .fontWeight(.bold)
+                  //              .fontDesign(.rounded)
+                  //              .foregroundStyle(Color.white)
+                  //              .fontWidth(.compressed)
+                  //            }
+                  Image(systemName: "person.circle")
+                    .minimumScaleFactor(0.5)
+                    .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+                    .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
+                }
               }
             }
           }
-        } else {
-          HStack(spacing: -6) {
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
-#warning("implement circles with usernames after joined fetch")
-              //            ZStack {
-              //              Circle()
-              //                .fill(Color.gray)
-              //              HStack {
-              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-              //              }
-              //              .fontWeight(.bold)
-              //              .fontDesign(.rounded)
-              //              .foregroundStyle(Color.white)
-              //              .fontWidth(.compressed)
-              //            }
-              Image(systemName: "person.circle")
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
-                .font(.title2)
-                .fontWeight(.bold)
-                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-            }
-            Spacer()
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
-#warning("implement circles with usernames after joined fetch")
-              //            ZStack {
-              //              Circle()
-              //                .fill(Color.gray)
-              //              HStack {
-              //                Text(currentUser.firstName.first!.uppercased() + currentUser.lastName.first!.uppercased())
-              //              }
-              //              .fontWeight(.bold)
-              //              .fontDesign(.rounded)
-              //              .foregroundStyle(Color.white)
-              //              .fontWidth(.compressed)
-              //            }
-              Image(systemName: "person.circle")
-                .minimumScaleFactor(0.5)
-                .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
-                .font(.title2)
-                .fontWeight(.bold)
-                .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-                .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-            }
+          .onTapGesture {
+            showAttendeeList.toggle()
           }
+          .padding()
         }
       }
-      .onTapGesture {
-        showAttendeeList.toggle()
-      }
-      .padding()
     }
   }
 }
