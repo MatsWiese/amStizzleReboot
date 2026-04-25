@@ -32,7 +32,7 @@ import Supabase
   func saveEventButtonTapped() {
     event = Event(id: self.event.id, title: newEventTitle, details: newEventDetails, startDate: eventBegin, endDate: eventEnd, createdAt: self.event.createdAt, updatedAt: Date.now, creatorId: currentProfileId)
     
-    let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: currentProfileId!, username: nil, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+    let eventAttendee = EventAttendee(id: UUID(), eventID: event.id, profileId: currentProfileId!, username: nil, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
     
     Task {
       do {
@@ -82,7 +82,7 @@ import Supabase
 //        
 //#warning("Creating user gets upserted two times when using NavLink to AttendeeManagerSheet")
 //        try EventAttendee
-//          .upsert { EventAttendee(id: currentUserUUID, eventId: event.id, userId: UUID(uuidString: currentUserIDString)! /* ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"))!*/, status: .invited) }
+//          .upsert { EventAttendee(id: currentUserUUID, eventID: event.id, userId: UUID(uuidString: currentUserIDString)! /* ?? UUID(uuidString: "00000000-0000-0000-0000-000000000000"))!*/, status: .invited) }
 //          .execute(db)
 //      }
 //    }
@@ -113,7 +113,7 @@ struct CreateEventView: View {
         
         Button {
           model.saveEventButtonTapped()
-          router.push(.attendeeManager(event: model.event))
+          router.push(.attendeeManager(eventID: model.event.id))
         } label: {
           HStack {
             Text("Manage attendees")

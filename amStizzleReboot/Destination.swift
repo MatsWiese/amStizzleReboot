@@ -9,17 +9,17 @@ import SwiftUI
 
 enum Destination {
   case createNewEvent
-  case attendeeManager(event: Event)
-  case eventDetail(event: Event)
+  case attendeeManager(eventID: Event.ID)
+  case eventDetail(eventID: Event.ID)
   
   @ViewBuilder var view: some View {
     switch self {
     case .createNewEvent:
       CreateEventView()
-    case .attendeeManager(event: let event):
-      AttendeeManagerView(event: event)
-    case .eventDetail(event: let event):
-      EventDetailView(event: event)
+    case .attendeeManager(eventID: let eventID):
+      AttendeeManagerView(eventID: eventID)
+    case .eventDetail(eventID: let eventID):
+      EventDetailView(eventID: eventID)
     }
   }
 }
@@ -27,10 +27,10 @@ enum Destination {
 extension Destination: Hashable, Equatable {
   static func == (lhs: Destination, rhs: Destination) -> Bool {
     switch (lhs, rhs) {
-    case let (.attendeeManager(lhsEvent), .attendeeManager(rhsEvent)):
-      return lhsEvent.id == rhsEvent.id
-    case let (.eventDetail(lhsEvent), .eventDetail(rhsEvent)):
-      return lhsEvent.id == rhsEvent.id
+    case let (.attendeeManager(lhsEventID), .attendeeManager(rhsEventID)):
+      return lhsEventID == rhsEventID
+    case let (.eventDetail(lhsEventID), .eventDetail(rhsEventID)):
+      return lhsEventID == rhsEventID
     case (.createNewEvent, .createNewEvent):
       return true
     default:

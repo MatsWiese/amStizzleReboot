@@ -96,7 +96,7 @@ struct SignUpView: View {
           .from("profiles")
           .insert(newProfile)
 //          .eq("profile_id", value: eventAttendee.profileId)
-//          .eq("event_id", value: eventAttendee.eventId )
+//          .eq("event_id", value: eventAttendee.eventID )
           .execute()
         
         appState.state = .authenticated

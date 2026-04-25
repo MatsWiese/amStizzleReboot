@@ -105,15 +105,18 @@ struct EventsListView: View {
           ForEach(viewModel.events) { event in
             EventRowView(
               event: event,
-              eventAttendees: viewModel.eventAttendees.filter { $0.eventId == event.id },
+              eventAttendees: viewModel.eventAttendees.filter { $0.eventID == event.id },
               currentEventAttendee: viewModel.eventAttendees.first {
-                $0.eventId == event.id && $0.profileId == viewModel.currentUserID
+                $0.eventID == event.id && $0.profileId == viewModel.currentUserID
               },
               onTapAcceptButton: {
                 viewModel.onAccept(forEventID: event.id)
               },
               onTapDeclineButton: {
                 viewModel.onDecline(forEventID: event.id)
+              },
+              onTapTitle: {
+                router.push(.eventDetail(eventID: event.id))
               }
             )
             .padding()

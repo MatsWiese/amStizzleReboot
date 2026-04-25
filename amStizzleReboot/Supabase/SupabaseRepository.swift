@@ -19,13 +19,28 @@ final class SupabaseRepository {
     self.client = client
   }
   
-  func getCurrentEventAttendee(for eventId: Event.ID) async throws -> EventAttendee {
+  func getEvent(byID eventID: Event.ID) async throws -> Event {
+    do {
+      return try await Supabase.shared
+        .from("events")
+        .select()
+        .eq("event_id", value: eventID)
+        .single()
+        .execute()
+        .value
+    } catch {
+      logger.error("Failed to get event: \(error)")
+      return Event(id: UUID(), title: "No event loaded", details: nil, startDate: nil, endDate: nil, createdAt: nil, updatedAt: nil, creatorId: nil)
+    }
+  }
+  
+  func getCurrentEventAttendee(for eventID: Event.ID) async throws -> EventAttendee {
     let userId = try await getCurrentUserId()
     return try await Supabase.shared
       .from("event_attendees")
       .select()
       .eq("profile_id", value: userId)
-      .eq("event_id", value: eventId)
+      .eq("event_id", value: eventID)
       .single()
       .execute()
       .value
@@ -35,6 +50,20 @@ final class SupabaseRepository {
     let id = try await client.auth.session.user.id
     logger.info("SupabaseRepository: Current user: \(id)")
     return id
+  }
+  
+  func getCurrentUserProfile() async throws -> Profile {
+    let currentUserID = try await getCurrentUserId()
+    let profile: Profile = try await client
+      .from("profiles")
+      .select()
+      .eq("id", value: currentUserID)
+      .single()
+      .execute()
+      .value
+    
+    logger.info("CurrentUserProfile fetched")
+    return profile
   }
 
   func getCurrentUserAvatarImage() async throws -> AvatarImage? {
@@ -66,6 +95,27 @@ final class SupabaseRepository {
     logger.info("Set AttendenceStatus to \(newAttendenceStatus)")
   }
   
+  func getEventAttendeesWithUsernames(forEvent eventID: Event.ID) async throws -> [EventAttendee] {
+      let response: [EventAttendee] = try await Supabase.shared
+        .from("event_attendees")
+        .select(
+                  """
+                    id,
+                    event_id,
+                    profile_id,
+                    profiles(username),
+                    attendance_status,
+                    created_at,
+                    updated_at
+                  """
+        )
+        .eq("event_id", value: eventID)
+        .execute()
+        .value
+      
+      return response
+  }
+
   func getEventAttendeesWithUsernames() async -> [EventAttendee] {
     do {
       let response: [EventAttendee] = try await Supabase.shared

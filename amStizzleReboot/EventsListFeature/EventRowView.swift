@@ -11,7 +11,7 @@ import SwiftUI
 
 struct EventRowView: View {
   @Environment(\.colorScheme) private var colorScheme
-  @Environment(AppRouter.self) private var router
+//  @Environment(AppRouter.self) private var router
   private let logger = Logger(subsystem: "amStizzleReboot", category: "EventRowView")
   
   let event: Event
@@ -19,6 +19,7 @@ struct EventRowView: View {
   let currentEventAttendee: EventAttendee?
   let onTapAcceptButton: () -> Void
   let onTapDeclineButton: () -> Void
+  var onTapTitle: (() -> Void)?
   
   var body: some View {
     VStack {
@@ -30,9 +31,7 @@ struct EventRowView: View {
         
         VStack {
           Button {
-            if !router.path.contains(.eventDetail(event: event)) {
-              router.push(.eventDetail(event: event))
-            }
+              onTapTitle?()
           } label: {
             titleView
           }
@@ -352,16 +351,16 @@ struct AttendanceView: View {
 //    let currentSampleUserId = UUID()
 //    let sampleOnTapAcceptButton: () -> Void
 //    let sampleOnTapDeclineButton: () -> Void
-//    let sampleCurrentEventAttendee = EventAttendee(id: UUID(), eventId: UUID(), profileId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//    let sampleCurrentEventAttendee = EventAttendee(id: UUID(), eventID: UUID(), profileId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
 //    let sampleEvent = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
 //    let sampleEventAttendees = [
 //      sampleCurrentEventAttendee,
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Egon", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Erwin", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Erna", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Klaus", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Hagen", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventId: sampleEvent.id, profileId: UUID(), username: "Josef", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Egon", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erwin", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erna", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Klaus", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Hagen", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Josef", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
 //    ]
 //    EventRowView(event: sampleEvent, eventAttendees: sampleEventAttendees, currentEventAttendee: sampleCurrentEventAttendee, onTapAcceptButton: {}, onTapDeclineButton: {})
 //  }

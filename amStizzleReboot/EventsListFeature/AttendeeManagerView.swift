@@ -22,7 +22,8 @@ import Supabase
   var eventAttendees: [EventAttendee] = []
 //  var currentProfile: Profile
   
-  let event: Event
+  let eventID: Event.ID
+  var event: Event?
   var isNewUserAlertPresented = false
   var newUserUsername = ""
   var newUserEmail = ""
@@ -34,8 +35,8 @@ import Supabase
 //  @ObservationIgnored @FetchAll(User.none) var users
 //  @ObservationIgnored @FetchAll(EventAttendee.none) var eventAttendees
   
-  init(event: Event) {
-    self.event = event
+  init(eventID: Event.ID) {
+    self.eventID = eventID
   }
   
   
@@ -84,7 +85,7 @@ import Supabase
             .from("event_attendees")
             .delete()
             .eq("profile_id", value: profile.id)
-            .eq("event_id", value: event.id)
+            .eq("event_id", value: eventID)
             .execute()
         } catch {
           logger.error("\(error.localizedDescription)")
@@ -93,7 +94,7 @@ import Supabase
 //      withErrorReporting {
 //        try database.write { db in
 //          try EventAttendee
-//            .where { $0.userId.eq(user.id)/* && $0.eventId.eq(event.id)*/ }
+//            .where { $0.userId.eq(user.id)/* && $0.eventID.eq(event.id)*/ }
 //            .delete()
 //            .execute(db)
 //        }
@@ -103,13 +104,13 @@ import Supabase
       Task {
         do {
           logger.info("trying to insert new eventAttendee")
-          let eventAttendee = EventAttendee(id: UUID(), eventId: event.id, profileId: profile.id, username: profile.username, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+          let eventAttendee = EventAttendee(id: UUID(), eventID: eventID, profileId: profile.id, username: profile.username, attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
           
           try await Supabase.shared
             .from("event_attendees")
             .insert(eventAttendee)
             .eq("profile_id", value: eventAttendee.profileId)
-            .eq("event_id", value: eventAttendee.eventId )
+            .eq("event_id", value: eventAttendee.eventID )
             .execute()
         } catch {
           logger.error("\(error.localizedDescription)")
@@ -117,7 +118,7 @@ import Supabase
       }
 //      withErrorReporting {
 //        try database.write { db in
-//          try EventAttendee.insert { EventAttendee.Draft(eventId: event.id, userId: user.id, status: .invited) }
+//          try EventAttendee.insert { EventAttendee.Draft(eventID: event.id, userId: user.id, status: .invited) }
 //            .execute(db)
 //        }
       }
@@ -169,7 +170,7 @@ import Supabase
         .from("event_attendees")
         .select()
 //        .eq("profile_id", value: $0.id)
-        .eq("event_id", value: event.id)
+        .eq("event_id", value: eventID)
         .execute()
         .value
       
@@ -208,7 +209,7 @@ import Supabase
 //    await withErrorReporting {
 //      _ = try await $eventAttendees.load(
 //        EventAttendee
-//          .where { $0.eventId.eq(event.id) }
+//          .where { $0.eventID.eq(event.id) }
 //        , animation: .default
 //      )
 //    }
@@ -224,8 +225,8 @@ struct AttendeeManagerView: View {
   let logger = Logger(subsystem: "amStizzleReboot", category: "AttendeeManagerSheet")
   
   @State var model: AttendeeManagerModel
-  init(event: Event) {
-    _model = State(wrappedValue: AttendeeManagerModel(event: event))
+  init(eventID: Event.ID) {
+    _model = State(wrappedValue: AttendeeManagerModel(eventID: eventID))
   }
   
 //  @FetchAll
@@ -235,8 +236,8 @@ struct AttendeeManagerView: View {
     List {
 #if DEBUG
       Section("passed Eventtitle and id") {
-        Text(model.event.title ?? "EventTitle")
-        Text("eventId: \(model.event.id)")
+        Text(model.event?.title ?? "EventTitle")
+        Text("eventID: \(model.eventID)")
           .font(.footnote )
       }
 #endif
@@ -290,7 +291,7 @@ struct AttendeeManagerView: View {
           } label: {
             Image(systemName: "plus")
           }
-          .alert("Invite a new user to \(model.event.title ?? "your gang")", isPresented: $model.isNewUserAlertPresented) {
+          .alert("Invite a new user to \(model.event?.title ?? "your gang")", isPresented: $model.isNewUserAlertPresented) {
             TextField("Username", text: $model.newUserUsername)
               .autocorrectionDisabled()
             TextField("eMail-Address", text: $model.newUserEmail)
@@ -310,6 +311,6 @@ struct AttendeeManagerView: View {
 #Preview {
   let event = Event(id: UUID(), title: "PreviewEvent", details: "", startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: UUID())
   NavigationStack {
-      AttendeeManagerView(event: event)
+    AttendeeManagerView(eventID: event.id)
     }
 }

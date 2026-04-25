@@ -9,16 +9,16 @@ import Foundation
 
 struct EventAttendee: Codable, Identifiable {
   let id: UUID
-  let eventId: UUID?
+  let eventID: UUID?
   let profileId: UUID?
   let username: String?
   let attendanceStatus: Int?
   let createdAt: Date?
   let updatedAt: Date?
   
-  init(id: UUID, eventId: UUID?, profileId: UUID, username: String?, attendanceStatus: Int?, createdAt: Date?, updatedAt: Date?) {
+  init(id: UUID, eventID: UUID?, profileId: UUID, username: String?, attendanceStatus: Int?, createdAt: Date?, updatedAt: Date?) {
     self.id = id
-    self.eventId = eventId
+    self.eventID = eventID
     self.profileId = profileId
     self.username = username
     self.attendanceStatus = attendanceStatus
@@ -29,7 +29,7 @@ struct EventAttendee: Codable, Identifiable {
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.id = try container.decode(UUID.self, forKey: .id)
-    self.eventId = try container.decodeIfPresent(UUID.self, forKey: .eventId)
+    self.eventID = try container.decodeIfPresent(UUID.self, forKey: .eventID)
     self.profileId = try container.decodeIfPresent(UUID.self, forKey: .profileId)
     self.attendanceStatus = try container.decodeIfPresent(Int.self, forKey: .attendanceStatus)
     self.createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
@@ -40,7 +40,7 @@ struct EventAttendee: Codable, Identifiable {
   func encode(to encoder: any Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(id, forKey: .id)
-    try container.encode(eventId, forKey: .eventId)
+    try container.encode(eventID, forKey: .eventID)
     try container.encode(profileId, forKey: .profileId)
     try container.encode(attendanceStatus, forKey: .attendanceStatus)
     try container.encode(createdAt, forKey: .createdAt)
@@ -49,7 +49,7 @@ struct EventAttendee: Codable, Identifiable {
   
   enum CodingKeys: String, CodingKey {
     case id
-    case eventId = "event_id"
+    case eventID = "event_id"
     case profileId = "profile_id"
     case username = "username"
     case attendanceStatus = "attendance_status"

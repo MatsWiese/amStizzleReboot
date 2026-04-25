@@ -70,7 +70,7 @@
 //
 //@Table struct EventAttendee: Identifiable {
 //    let id: UUID
-//    var eventId: Event.ID
+//    var eventID: Event.ID
 //    var userId: User.ID
 //    var status: AttandanceStatus
 //}
@@ -144,7 +144,7 @@
 //      """
 //      CREATE TABLE "eventAttendees" (
 //        "id" TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
-//        "eventId" TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+//        "eventID" TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
 //        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 //        "status" TEXT NOT NULL DEFAULT "invited"
 //      )
@@ -177,9 +177,9 @@
 //        User.Draft(id: UUID(3), firstName: "Barbara", lastName: "Gordon")
 //       }
 //      try db.seed {
-//        EventAttendee.Draft(eventId: UUID(2), userId: UUID(1), status: .invited)
-//        EventAttendee.Draft(eventId: UUID(1), userId: UUID(2), status: .attending)
-//        EventAttendee.Draft(eventId: UUID(1), userId: UUID(3), status: .notAttending)
+//        EventAttendee.Draft(eventID: UUID(2), userId: UUID(1), status: .invited)
+//        EventAttendee.Draft(eventID: UUID(1), userId: UUID(2), status: .attending)
+//        EventAttendee.Draft(eventID: UUID(1), userId: UUID(3), status: .notAttending)
 //       }
 //    }
 //  }
