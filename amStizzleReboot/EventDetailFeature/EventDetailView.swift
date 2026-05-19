@@ -265,7 +265,7 @@ struct EventDetailView: View {
   
   var body: some View {
     content
-      .task {
+      .task(id: viewModel.eventID) {
         await viewModel.loadTask()
       }
   }

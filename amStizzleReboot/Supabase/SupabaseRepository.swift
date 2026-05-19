@@ -9,6 +9,17 @@ import Foundation
 import Supabase
 import os
 
+enum SupabaseError: Error {
+  case eventNotFound(id: Event.ID)
+  
+  var localizedDescription: String {
+    switch self {
+    case .eventNotFound(let id):
+      return "Event not found. ID: \(id)"
+    }
+  }
+}
+
 final class SupabaseRepository {
   private let client: SupabaseClient
   private let logger = Logger(subsystem: "amStizzleReboot", category: "SupabaseRepository")
@@ -19,18 +30,18 @@ final class SupabaseRepository {
     self.client = client
   }
   
-  func getEvent(byID eventID: Event.ID) async throws -> Event {
+  func getEvent(byID eventID: Event.ID) async throws(SupabaseError) -> Event {
     do {
       return try await Supabase.shared
         .from("events")
         .select()
-        .eq("event_id", value: eventID)
+        .eq("id", value: eventID)
         .single()
         .execute()
         .value
     } catch {
       logger.error("Failed to get event: \(error)")
-      return Event(id: UUID(), title: "No event loaded", details: nil, startDate: nil, endDate: nil, createdAt: nil, updatedAt: nil, creatorId: nil)
+      throw SupabaseError.eventNotFound(id: eventID)
     }
   }
   
