@@ -45,7 +45,9 @@ struct EventRowView: View {
                 eventAttendees: eventAttendees,
                 invitationState: .inviteAccepted,
                 image: "checkmark.circle.fill",
-                text: "amStizzle!"
+                text: "amStizzle!",
+                onTapAcceptButton: onTapAcceptButton,
+                onTapDeclineButton: onTapDeclineButton
               )
             } else if let currentEventAttendee, currentEventAttendee.attendanceStatus == 2 {
               AttendanceView(
@@ -53,7 +55,9 @@ struct EventRowView: View {
                 eventAttendees: eventAttendees,
                 invitationState: .inviteDeclined,
                 image: "xmark.circle.fill",
-                text: "You declined"
+                text: "You declined",
+                onTapAcceptButton: onTapAcceptButton,
+                onTapDeclineButton: onTapDeclineButton
               )
             } else {
               ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
@@ -118,7 +122,7 @@ struct EventRowView: View {
           .fontDesign(.monospaced)
           
           VStack(alignment: .leading) {
-            Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
+            Text(event.startDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
             Text(event.endDate?.formatted(date: .omitted, time: .shortened) ?? "N/A")
           }
           .minimumScaleFactor(0.8)
@@ -205,6 +209,9 @@ struct AttendanceView: View {
   var image: String
   var text: String
   
+  let onTapAcceptButton: () -> Void
+  let onTapDeclineButton: () -> Void
+  
   var body: some View {
     ZStack(alignment: .topLeading) {
       ConcentricRectangle()
@@ -224,7 +231,7 @@ struct AttendanceView: View {
                     Text(attendee.username ?? "N/A")
                     Spacer()
                     Button {
-                      // TODO: Deline-Logic
+                      onTapDeclineButton()
                     } label: {
                       ZStack {
                         RoundedRectangle(cornerRadius: 8)
@@ -254,7 +261,7 @@ struct AttendanceView: View {
                     Text(attendee.username ?? "N/A")
                     Spacer()
                     Button {
-                      // TODO: Deline-Logic
+                      onTapAcceptButton()
                     } label: {
                       ZStack {
                         RoundedRectangle(cornerRadius: 8)
