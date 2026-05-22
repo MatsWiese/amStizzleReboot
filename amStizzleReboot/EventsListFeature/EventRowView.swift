@@ -53,14 +53,16 @@ struct EventRowView: View {
             onTapDeclineButton: onTapDeclineButton
           )
         } else {
-          ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
-            onTapDeclineButton()
+          HStack {
+            ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
+              onTapDeclineButton()
+            }
+            ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
+              onTapAcceptButton()
+            }
           }
-          ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
-            onTapAcceptButton()
-          }
+          .frame(height: 80)
         }
-//      }
     }
     .padding()
 //    .frame(maxWidth: .infinity, minHeight: 270, alignment: .top)
@@ -238,7 +240,7 @@ struct AttendanceView: View {
                           .font(.body)
                           .fontWeight(.heavy)
                       }
-                      .frame(width: 40)
+                      .frame(width: 40, height: 40)
                       .foregroundStyle(.white)
                     }
                     .padding(.trailing, 10)
@@ -268,7 +270,7 @@ struct AttendanceView: View {
                           .font(.body)
                           .fontWeight(.heavy)
                       }
-                      .frame(width: 40)
+                      .frame(width: 40, height: 40)
                       .foregroundStyle(.white)
                     }
                     .padding(.trailing, 10)
@@ -286,14 +288,14 @@ struct AttendanceView: View {
             if (eventAttendees.filter { $0.attendanceStatus == 0 }).count > 0 {
               Text("Invited:")
                 .font(.caption)
-              HStack {
+              VStack {
                 ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
                   Text(attendee.username ?? "N/A")
                 }
               }
             }
           }
-          .frame(minHeight: 60, alignment: .topLeading)
+          .frame(minHeight: 80, alignment: .topLeading)
 //          .frame(height: 30)
         } else {
           VStack(alignment: .leading) {
@@ -315,7 +317,7 @@ struct AttendanceView: View {
               }
             }
           }
-          .frame(height: 60)
+          .frame(height: 80)
         }
       }
       .padding()
@@ -355,23 +357,23 @@ struct AttendeeBubbleView: View {
   }
 }
 //
-//#Preview {
-//  NavigationStack {
-//    let currentSampleUserId = UUID()
-//    let sampleOnTapAcceptButton: () -> Void
-//    let sampleOnTapDeclineButton: () -> Void
-//    let sampleCurrentEventAttendee = EventAttendee(id: UUID(), eventID: UUID(), profileId: UUID(), username: "Tom", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
-//    let sampleEvent = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
-//    let sampleEventAttendees = [
-//      sampleCurrentEventAttendee,
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Egon", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erwin", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erna", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Klaus", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Hagen", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
-//      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Josef", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
-//    ]
-//    EventRowView(event: sampleEvent, eventAttendees: sampleEventAttendees, currentEventAttendee: sampleCurrentEventAttendee, onTapAcceptButton: {}, onTapDeclineButton: {})
-//  }
-//  .environment(AppRouter())
-//}
+#Preview {
+  NavigationStack {
+    let currentSampleUserId = UUID()
+    let sampleOnTapAcceptButton: () -> Void
+    let sampleOnTapDeclineButton: () -> Void
+    let sampleCurrentEventAttendee = EventAttendee(id: UUID(), eventID: UUID(), profileId: UUID(), username: "Tom", attendanceStatus: 0, createdAt: Date.now, updatedAt: Date.now)
+    let sampleEvent = Event(id: UUID(), title: "Test", details: nil, startDate: Date.now, endDate: Date.now + 3600, createdAt: Date.now, updatedAt: Date.now, creatorId: currentSampleUserId)
+    let sampleEventAttendees = [
+      sampleCurrentEventAttendee,
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Egon", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erwin", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Erna", attendanceStatus: 1, createdAt: Date.now, updatedAt: Date.now),
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Klaus", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Hagen", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now),
+      EventAttendee(id: UUID(), eventID: sampleEvent.id, profileId: UUID(), username: "Josef", attendanceStatus: 2, createdAt: Date.now, updatedAt: Date.now)
+    ]
+    EventRowView(event: sampleEvent, eventAttendees: sampleEventAttendees, currentEventAttendee: sampleCurrentEventAttendee, onTapAcceptButton: {}, onTapDeclineButton: {})
+  }
+  .environment(AppRouter())
+}

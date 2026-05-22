@@ -326,6 +326,7 @@ extension EventDetailView {
           onTapAcceptButton: viewModel.onAcceptEvent,
           onTapDeclineButton: viewModel.onDeclineEvent
         )
+        .padding()
   #if DEBUG
       HStack {
         Text("Creator: ")
