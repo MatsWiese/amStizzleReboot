@@ -248,11 +248,25 @@ extension EventDetailModel {
   }
   
   func onAcceptEvent() {
-    // TODO: Implementation
+    Task {
+      do {
+        try await repository.updateAttendanceStatus(to: 1, forEventID: eventID)
+        await loadTask()
+      } catch {
+        logger.error("\(error)")
+      }
+    }
   }
   
   func onDeclineEvent() {
-    // TODO: Implementation
+    Task {
+      do {
+        try await repository.updateAttendanceStatus(to: 2, forEventID: eventID)
+        await loadTask()
+      } catch {
+        logger.error("\(error)")
+      }
+    }
   }
 }
 
@@ -267,6 +281,16 @@ struct EventDetailView: View {
     content
       .task(id: viewModel.eventID) {
         await viewModel.loadTask()
+      }
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            router.push(.attendeeManager(eventID: viewModel.eventID))
+          } label: {
+            Image(systemName: "person.2.badge.gearshape.fill")
+          }
+          .accessibilityLabel("Add Member")
+        }
       }
   }
 }
@@ -302,7 +326,7 @@ extension EventDetailView {
           onTapAcceptButton: viewModel.onAcceptEvent,
           onTapDeclineButton: viewModel.onDeclineEvent
         )
-      
+  #if DEBUG
       HStack {
         Text("Creator: ")
         Spacer()
@@ -400,7 +424,8 @@ extension EventDetailView {
         }
       }
       .frame(height: 50)
-      .navigationTitle(successModel.event.title ?? "No title")
+      #endif
+//      .navigationTitle(successModel.event.title ?? "No title")
       
       Spacer()
     }

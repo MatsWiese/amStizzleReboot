@@ -289,7 +289,7 @@ struct AttendeeManagerView: View {
           Button {
             model.addUserButtonTapped()
           } label: {
-            Image(systemName: "plus")
+            Image(systemName: "person.crop.circle.fill.badge.plus")
           }
           .alert("Invite a new user to \(model.event?.title ?? "your gang")", isPresented: $model.isNewUserAlertPresented) {
             TextField("Username", text: $model.newUserUsername)

@@ -22,58 +22,55 @@ struct EventRowView: View {
   var onTapTitle: (() -> Void)?
   
   var body: some View {
-    VStack {
-      ZStack {
-        RoundedRectangle(cornerRadius: 60)
-          .fill(colorScheme == .dark ? Color.black.opacity(0.9) : Color.white.opacity(0.5))
-          .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
-          .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
-        
-        VStack {
-          Button {
-              onTapTitle?()
-          } label: {
-            titleView
+    VStack(alignment: .leading) {
+      Button {
+        onTapTitle?()
+      } label: {
+        titleView
+      }
+      
+      timeSection
+      
+//      HStack(alignment: .top) {
+        if let currentEventAttendee, currentEventAttendee.attendanceStatus == 1 {
+          AttendanceView(
+            currentEventAttendee: currentEventAttendee,
+            eventAttendees: eventAttendees,
+            invitationState: .inviteAccepted,
+            image: "checkmark.circle.fill",
+            text: "amStizzle!",
+            onTapAcceptButton: onTapAcceptButton,
+            onTapDeclineButton: onTapDeclineButton
+          )
+        } else if let currentEventAttendee, currentEventAttendee.attendanceStatus == 2 {
+          AttendanceView(
+            currentEventAttendee: currentEventAttendee,
+            eventAttendees: eventAttendees,
+            invitationState: .inviteDeclined,
+            image: "xmark.circle.fill",
+            text: "You declined",
+            onTapAcceptButton: onTapAcceptButton,
+            onTapDeclineButton: onTapDeclineButton
+          )
+        } else {
+          ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
+            onTapDeclineButton()
           }
-          
-          timeSection
-          
-          HStack {
-            if let currentEventAttendee, currentEventAttendee.attendanceStatus == 1 {
-              AttendanceView(
-                currentEventAttendee: currentEventAttendee,
-                eventAttendees: eventAttendees,
-                invitationState: .inviteAccepted,
-                image: "checkmark.circle.fill",
-                text: "amStizzle!",
-                onTapAcceptButton: onTapAcceptButton,
-                onTapDeclineButton: onTapDeclineButton
-              )
-            } else if let currentEventAttendee, currentEventAttendee.attendanceStatus == 2 {
-              AttendanceView(
-                currentEventAttendee: currentEventAttendee,
-                eventAttendees: eventAttendees,
-                invitationState: .inviteDeclined,
-                image: "xmark.circle.fill",
-                text: "You declined",
-                onTapAcceptButton: onTapAcceptButton,
-                onTapDeclineButton: onTapDeclineButton
-              )
-            } else {
-              ButtonView(buttonType: .refuseButton, image: "xmark", text: "nope, i'm out") {
-                onTapDeclineButton()
-              }
-              ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
-                onTapAcceptButton()
-              }
-            }
+          ButtonView(buttonType: .attendButton, image: "checkmark", text: "am Stizzle!") {
+            onTapAcceptButton()
           }
         }
-        .padding()
-      }
-      .frame(height: 270)
-      .containerShape(.rect(cornerRadius: 60))
+//      }
     }
+    .padding()
+//    .frame(maxWidth: .infinity, minHeight: 270, alignment: .top)
+    .background {
+      RoundedRectangle(cornerRadius: 60)
+        .fill(colorScheme == .dark ? Color.black.opacity(0.9) : Color.white.opacity(0.5))
+        .shadow(color: .black.opacity(0.7), radius: 2, x: 2, y: 2)
+        .shadow(color: .white.opacity(0.7), radius: 2, x: -2, y: -2)
+    }
+    .containerShape(.rect(cornerRadius: 60))
     .onAppear {
       logger.info("EventRowView(onAppear): CurrentEventAttendeeID: \(currentEventAttendee?.profileId?.uuidString ?? "No EventAttendee")")
     }
@@ -134,6 +131,7 @@ struct EventRowView: View {
       .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
       .padding()
     }
+    .frame(height: 70)
   }
 }
 
@@ -244,7 +242,7 @@ struct AttendanceView: View {
                       .foregroundStyle(.white)
                     }
                     .padding(.trailing, 10)
-//                    .buttonStyle(.bordered)
+                    //                    .buttonStyle(.bordered)
                     .buttonBorderShape(.roundedRectangle)
                   }
                 } else {
@@ -274,15 +272,15 @@ struct AttendanceView: View {
                       .foregroundStyle(.white)
                     }
                     .padding(.trailing, 10)
-//                    .buttonStyle(.bordered)
+                    //                    .buttonStyle(.bordered)
                     .buttonBorderShape(.roundedRectangle)
                     
                   }
                 } else {
                   Text(attendee.username ?? "N/A")
                 }
-
-//                Text(attendee.username ?? "0")
+                
+                //                Text(attendee.username ?? "0")
               }
             }
             if (eventAttendees.filter { $0.attendanceStatus == 0 }).count > 0 {
@@ -290,12 +288,15 @@ struct AttendanceView: View {
                 .font(.caption)
               HStack {
                 ForEach(eventAttendees.filter { $0.attendanceStatus == 0 }) { attendee in
-                  Text(attendee.username ?? "0")
+                  Text(attendee.username ?? "N/A")
                 }
               }
             }
           }
+          .frame(minHeight: 60, alignment: .topLeading)
+//          .frame(height: 30)
         } else {
+          VStack(alignment: .leading) {
           Text(text)
             .minimumScaleFactor(0.5)
             .foregroundStyle(Color.primary)
@@ -304,52 +305,53 @@ struct AttendanceView: View {
             .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
             .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
           
-          HStack(spacing: -1) {
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
-              ZStack {
-                Circle()
-                  .fill(Color.gray)
-                  .stroke(.primary, lineWidth: 2)
-                HStack {
-                  Text(attendee.username?.first!.uppercased() ?? "N/A")
-                }
-                .fontWeight(.bold)
-                .fontDesign(.rounded)
-                .foregroundStyle(Color.white)
-                .fontWidth(.compressed)
-                .padding(2)
+            HStack(spacing: -1) {
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 1 }) { attendee in
+                AttendeeBubbleView(currentEventAttendee: currentEventAttendee, attendee: attendee, color: .mint)
               }
-              .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.orange : Color.primary)
-              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
-            }
-            Spacer()
-            ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
-              ZStack {
-                Circle()
-                  .fill(Color.gray)
-                  .stroke(.primary, lineWidth: 2)
-                HStack {
-                  Text(attendee.username?.first!.uppercased() ?? "N/A")
-                }
-                .fontWeight(.bold)
-                .fontDesign(.rounded)
-                .foregroundStyle(Color.white)
-                .fontWidth(.compressed)
-                .padding(2)
+              Spacer()
+              ForEach(eventAttendees.filter { $0.attendanceStatus == 2 }) { attendee in
+                AttendeeBubbleView(currentEventAttendee: currentEventAttendee, attendee: attendee, color: .orange)
               }
-              .foregroundStyle(attendee.id == currentEventAttendee.profileId ? Color.mint : Color.primary)
-              .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
-              .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
             }
           }
+          .frame(height: 60)
         }
       }
       .padding()
     }
+    .fixedSize(horizontal: false, vertical: true)
     .onTapGesture {
-      showAttendeeList.toggle()
+      withAnimation {
+        showAttendeeList.toggle()
+      }
     }
+  }
+}
+ 
+struct AttendeeBubbleView: View {
+  let currentEventAttendee: EventAttendee
+  let attendee: EventAttendee
+  let color: Color
+  
+  var body: some View {
+    ZStack {
+      Circle()
+        .fill(Color.gray)
+        .stroke(.primary, lineWidth: 2)
+      HStack {
+        Text(attendee.username?.first!.uppercased() ?? "N/A")
+      }
+      .fontWeight(.bold)
+      .fontDesign(.rounded)
+      .foregroundStyle(Color.white)
+      .fontWidth(.compressed)
+      .padding(2)
+    }
+    .frame(width: 20)
+    .foregroundStyle(attendee.profileId == currentEventAttendee.profileId ? color : Color.primary)
+    .shadow(color: .black.opacity(0.7), radius: 1, x: 1, y: 1)
+    .shadow(color: .white.opacity(0.7), radius: 1, x: -1, y: -1)
   }
 }
 //
